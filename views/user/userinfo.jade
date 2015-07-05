@@ -1,0 +1,14 @@
+extends ../layout
+
+block content
+    - if (!user)
+        p 
+        a(href='login') Please Log in
+    - if (user)
+        p 
+        h2.page-header Teacher Information
+        p Name: #{user.name}
+        p School: #{user.school}
+        p Email: #{user.email}
+        p Username: #{user.username}
+        a(href='updateuserinfo') Change Info

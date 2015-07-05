@@ -1,0 +1,17 @@
+extends ../layout
+
+block content
+    - if (user)
+        form#formAddUser.form-register(name="adduser",method="post",action="updateuserinfo")
+            h2.page-header Update information
+            label(for='inputName') Name
+            input#inputName.form-control(type="text", placeholder="#{user.name}", name="name")
+            label(for='inputSchool') School
+            input#inputSchool.form-control(type="text", placeholder="#{user.school}", name="school")
+            label(for='inputUserEmail') Email
+            input#inputUserEmail.form-control(type="text", placeholder="#{user.email}", name="useremail")
+            p
+            button.btn.btn-lg.btn-default.btn-block(type="submit") Update
+    - if (!user)
+        p 
+        .alert.alert-warning a(href='login') Please Log in

@@ -1,0 +1,10 @@
+.col-sm-3.col-md-2.sidebar
+                ul.nav.nav-sidebar
+                    - var objUser = { 'newentry':'Create New Lesson Plan', 'viewlps':'View My Lesson Plans', 'organizer': 'Organizer' }
+                        - each val, key in objUser
+                            -if (id == key)
+                                li.active
+                                    a(href='#{key}') #{val}
+                            -else
+                                li
+                                    a(href='#{key}') #{val}

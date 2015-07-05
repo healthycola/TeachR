@@ -1,0 +1,11 @@
+extends ../layout
+
+block content
+    form#formAddUser.form-register(name="login",method="post",action="/login")
+        h2.page-header Login
+        label(for='inputUserName') Username
+        input#inputUserName.form-control(type="text", placeholder="User Name", name="username")
+        label(for='inputUserPassword') Password
+        input#inputUserPassword.form-control(type="password", placeholder="Password", name="password")
+        p
+        button.btn.btn-lg.btn-primary.btn-block(type="submit") Log In

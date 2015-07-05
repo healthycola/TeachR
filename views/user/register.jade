@@ -1,0 +1,32 @@
+extends ../layout
+
+block content                
+    - if (!user)
+        form#formAddUser.form-register(name="adduser",method="post",action="register")
+            - if (errors || registerFail)
+                .alert.alert-warning
+                    p.errorMessage= "The following errors occurred:"
+                    - if (errors)
+                        ul
+                          - each error in errors
+                                li= error.msg
+                    - if (registerFail)
+                            p.errorMessage= registerFail.message
+            h2.page-header Register
+            label(for='inputName') Name
+            input#inputName.form-control(type="text", placeholder="Name", name="name")
+            label(for='inputSchool') School
+            input#inputSchool.form-control(type="text", placeholder="School", name="school")
+            label(for='inputUserName') User Name
+            input#inputUserName.form-control(type="text", placeholder="User Name", name="username")
+            label(for='inputUserEmail') Email
+            input#inputUserEmail.form-control(type="text", placeholder="User Email", name="useremail")
+            label(for='inputUserPassword') Password
+            input#inputUserPassword.form-control(type="password", placeholder="Password", name="password")
+            p
+            button.btn.btn-lg.btn-default.btn-block(type="submit") Register
+        p.text-center
+            a(href='login') Already a user?
+    - if (user)
+        .alert.alert-warning Hey #{user.name}, looks like you are already registered!
+    - if (err)

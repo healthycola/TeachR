@@ -1,0 +1,54 @@
+.navbar.navbar-default.navbar-static-top(role='navigation')
+    .container
+        .navbar-header
+        a.navbar-brand(href="/") TeachR
+        #navbar.navbar-collapse.collapse
+            ul.nav.navbar-nav.navbar-right
+                li
+                    a.dropdown-toggle(data-toggle='dropdown' href='#')
+                        - if (user)
+                            i.fa.fa-user.fa-fw
+                            span  #{user.name}
+                        - if (!user)
+                            i.fa.fa-user.fa-fw
+                            span Login
+                        span.caret
+                    ul.dropdown-menu(role='menu' aria-labelledby='dLabel')
+                        - if (user)
+                            li
+                                a(href='userinfo')
+                                    i.fa.fa-cogs.fa-fw
+                                    span  Control Panel
+                            li
+                                a(href='logout')
+                                    i.fa.fa-sign-out.fa-fw
+                                    span  Logout
+                        - if (!user)
+                            li
+                                a(href='register')
+                                    i.fa.fa-pencil.fa-fw
+                                    span  Register
+                            li
+                                a(href='login')
+                                    i.fa.fa-sign-in.fa-fw
+                                    span  Login
+                
+            ul.nav.navbar-nav.navbar-right
+                - if (user)
+                    - var objUser = { 'dashboard':'Dashboard', 'friends':'MyFriends' }
+                    - each val, key in objUser
+                        -if (id == key)
+                            li.active
+                                a(href='#{key}') #{val}
+                        -else
+                            li
+                                a(href='#{key}') #{val}
+                - if (!user)
+                    - var objNoUser = { 'about':'About Us', 'share':'Share the word!' }
+                    - each val, key in objNoUser
+                        -if (id == key)
+                            li.active
+                                a(href='#{key}') #{val}
+                        -else
+                            li
+                                a(href='#{key}') #{val}
