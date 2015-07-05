@@ -1,0 +1,16 @@
+extends layoutdash
+
+block dashcontent
+        form#formAddCourse.form-register(name="newclass",method="post",action="/createcourse")
+                h2.page-header New Course
+                label(for='courseGrade') Grade
+                - var courseNumber = 1
+                select#courseGrade.form-control
+                        while courseNumber <= 12 
+                                option= courseNumber++
+                label(for='courseSubject') Subject
+                select#courseSubject.form-control
+                        - each val in [ 'Math', 'Science', 'English', 'Social Studies', 'Geography', 'History']
+                                option #{val}
+                p
+                button.btn.btn-lg.btn-primary.btn-block(type="submit") Add Course

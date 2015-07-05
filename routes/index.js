@@ -1,6 +1,6 @@
 var express = require('express');
 var passport = require('passport');
-var Account = require('../models/account');
+var Teacher = require('../models/teacher');
 var router = express.Router();
 
 /* GET home page. */
@@ -23,25 +23,21 @@ router.get('/register', function(req, res) {
 });
 
 router.post('/register', function(req, res) {
-    console.log(req);
-    
     req.assert('name', 'Name is required').isAscii();           //Validate name
     req.assert('username', 'A valid username is required').notEmpty();  //Validate email
     req.assert('useremail', 'A valid email is required').isEmail();           //Validate name
     req.assert('password', 'The password must be between 5-10 characters').isLength(5,10);  //Validate email
     
     var errors = req.validationErrors();  
-    console.log(errors);
     if (errors) {   //Display errors to user
-        console.log(errors);
         return res.render('user/register', {
             message: '',
             errors: errors
         });
     }
     
-    Account.register(
-        new Account(
+    Teacher.register(
+        new Teacher(
             { 
                 name: req.body.name,
                 school: req.body.school,
@@ -50,11 +46,11 @@ router.post('/register', function(req, res) {
             }
             ),
         req.body.password,
-        function(err, account) {
+        function(err, teacher) {
             if (err) {
                 console.log(err);
                 return res.render('user/register', 
-                                  { account: account,
+                                  { teacher: teacher,
                                     registerFail: err }
                                   );
             }
@@ -67,10 +63,13 @@ router.post('/register', function(req, res) {
 });
 
 router.get('/login', function(req, res) {
-    res.render('user/login', { user: req.user });
+    console.log(req);
+    res.render('user/login', { user: req.user, error: req.flash('error')[0] });
 });
            
-router.post('/login', passport.authenticate('local'), function (req, res) {
+router.post('/login', 
+    passport.authenticate('local', 
+        { failureRedirect: '/login', failureFlash: true }), function (req, res) {
     res.redirect('userinfo');
 });
 
@@ -96,7 +95,7 @@ router.post('/updateuserinfo', function(req,res) {
         var _school = (req.body.school) ? req.body.school : req.user.school;
         var _email = (req.body.useremail) ? req.body.useremail : req.user.email;
         
-        Account.findById(req.user.id, function (err, account){
+        Teacher.findById(req.user.id, function (err, teacher){
             if (err)
             {
                 res.render('updateuserinfo', {
@@ -105,11 +104,11 @@ router.post('/updateuserinfo', function(req,res) {
                 });
             }
             
-            account.name = _name;
-            account.school = _school;
-            account.email = _email;
+            teacher.name = _name;
+            teacher.school = _school;
+            teacher.email = _email;
             
-            account.save( function(err){
+            teacher.save( function(err){
                 
                 res.redirect('userinfo');
             });
@@ -127,6 +126,10 @@ router.get('/dashboard', function(req, res) {
 
 router.get('/newentry', function(req, res) {
     res.render('dashboard/createlp');
+});
+
+router.get('/newcourse', function(req, res) {
+    res.render('dashboard/newcourse');
 });
 
 module.exports = router;

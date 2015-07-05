@@ -1,6 +1,8 @@
 extends ../layout
 
 block content
+    - if (error)
+        .alert.alert-warning #{error}
     form#formAddUser.form-register(name="login",method="post",action="/login")
         h2.page-header Login
         label(for='inputUserName') Username
