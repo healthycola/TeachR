@@ -182,7 +182,14 @@ router.post('/createcourse', function(req, res) {
                                 console.log('pushed');
                                 teacher.save(
                                     function(err){
-                                        req.flash('info', 'Adding this course failed!');
+                                        if (err)
+                                        {
+                                            req.flash('info', 'Adding this course failed!');
+                                        }
+                                        else
+                                        {
+                                            req.flash('info', 'Success!');
+                                        }
                                         res.redirect('newcourse');
                                     }
                                 );
