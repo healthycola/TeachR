@@ -8,21 +8,11 @@ block dashcontent
         label(for='lessonTitle') Title
         input#lessonTitle.form-control(type='text' placeholder='Title of lesson plan')
         p
-        .row
-            .col-md-6
-                .form-group
-                    label(for='subject') Subject
+        .form-group
+                    label(for='course') Courses
                     select.form-control
-                        option Math
-                        option Science
-                        option English
-            .col-md-6
-                .form-group
-                    label(for='unit') Unit
-                    select.form-control
-                        option Unit 1
-                        option Unit 2
-                        option Unit 3
+                        - each course in usercourses
+                            option Grade #{course.grade} #{course.subject}
         p
         .row
             .col-md-8

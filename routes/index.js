@@ -82,7 +82,8 @@ router.get('/logout', function(req, res) {
 router.get('/userinfo', function(req,res) {
     Teacher.findById(req.user.id, function (err, teacher){
         if (err) {
-            console.log('Finding user failed');
+            req.flash('info', 'Finding user failed');
+            res.render('user/userinfo');
         }
         else {
             Course.find({ 
@@ -91,7 +92,8 @@ router.get('/userinfo', function(req,res) {
                     if (err)
                     {
                         //Flash
-                        console.log('Finding courses failed');
+                        req.flash('info', 'Unable to find courses');
+                        res.render('user/userinfo');
                     }
                     else {
                         res.render('user/userinfo', { usercourses: courses });
@@ -143,7 +145,25 @@ router.get('/dashboard', function(req, res) {
 });
 
 router.get('/newentry', function(req, res) {
-    res.render('dashboard/createlp', { message: req.flash('info') });
+    Teacher.findById(req.user.id, function (err, teacher){
+        if (err) {
+            console.log('Finding user failed');
+        }
+        else {
+            Course.find({ 
+                    _id: { $in: teacher.courses}
+                }, function (err, courses) {
+                    if (err)
+                    {
+                        //Flash
+                        console.log('Finding courses failed');
+                    }
+                    else {
+                        res.render('dashboard/createlp', { message: req.flash('info'), usercourses: courses });
+                    } 
+                });
+        }
+    });
 });
 
 router.get('/newcourse', function(req, res) {
