@@ -79,6 +79,42 @@ router.get('/logout', function(req, res) {
     res.redirect('/');
 });
 
+router.get('/myfriends', function(req,res) {
+    Teacher.findById(req.user.id, function (err, teacher){
+        if (err) {
+            req.flash('info', 'Finding user failed');
+            res.render('user/myfriends');
+        }
+        else {
+            Teacher.find({ 
+                    _id: { $in: teacher.following}
+                }, function (err, following) {
+                    if (err)
+                    {
+                        //Flash
+                        req.flash('info', 'Unable to find following teachers');
+                        res.render('user/myfriends');
+                    }
+                    else {
+                        Teacher.find({ 
+                            _id: { $in: teacher.followers}
+                        }, function (err, followers) {
+                            if (err)
+                            {
+                                //Flash
+                                req.flash('info', 'Unable to find following teachers');
+                                res.render('user/myfriends');
+                            }
+                            else {
+                                res.render('user/myfriends', { myfollowers: followers, myfollowing: following });
+                            } 
+                        });
+                    } 
+                });
+        }
+    });
+});
+
 router.get('/userinfo', function(req,res) {
     Teacher.findById(req.user.id, function (err, teacher){
         if (err) {
