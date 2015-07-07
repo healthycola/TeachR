@@ -1,16 +1,17 @@
 var express = require('express');
 var passport = require('passport');
 var Teacher = require('../models/teacher');
+var Course = require('../models/course');
 var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res) {
-  res.render('index', { title: 'TeachR!' });
+  res.render('index', { title: 'TeachR!', message: req.flash('info')  });
 });
 
 
 router.get('/helloworld', function(req, res) {
-  res.render('helloworld', { title: 'Hello World!' });
+  res.render('helloworld', { title: 'Hello World!', message: req.flash('info')  });
 });
 
 /* GET Userlist page. */
@@ -19,7 +20,7 @@ router.get('/userlist', function(req, res) {
 });
 
 router.get('/register', function(req, res) {
-    res.render('user/register', { title: 'Add New User' });
+    res.render('user/register', { title: 'Add New User', message: req.flash('info')  });
 });
 
 router.post('/register', function(req, res) {
@@ -79,7 +80,25 @@ router.get('/logout', function(req, res) {
 });
 
 router.get('/userinfo', function(req,res) {
-    res.render('user/userinfo');
+    Teacher.findById(req.user.id, function (err, teacher){
+        if (err) {
+            console.log('Finding user failed');
+        }
+        else {
+            Course.find({ 
+                    _id: { $in: teacher.courses}
+                }, function (err, courses) {
+                    if (err)
+                    {
+                        //Flash
+                        console.log('Finding courses failed');
+                    }
+                    else {
+                        res.render('user/userinfo', { usercourses: courses });
+                    } 
+                });
+        }
+    });
 });
 
 router.get('/updateuserinfo', function(req,res) {
@@ -109,7 +128,6 @@ router.post('/updateuserinfo', function(req,res) {
             teacher.email = _email;
             
             teacher.save( function(err){
-                
                 res.redirect('userinfo');
             });
         });
@@ -121,15 +139,97 @@ router.post('/updateuserinfo', function(req,res) {
 });
 
 router.get('/dashboard', function(req, res) {
-    res.render('dashboard/main');
+    res.render('dashboard/main', { message: req.flash('info') });
 });
 
 router.get('/newentry', function(req, res) {
-    res.render('dashboard/createlp');
+    res.render('dashboard/createlp', { message: req.flash('info') });
 });
 
 router.get('/newcourse', function(req, res) {
-    res.render('dashboard/newcourse');
+    res.render('dashboard/newcourse', { message: req.flash('info') });
+});
+
+router.post('/createcourse', function(req, res) {
+    //Look for courses with this grade
+    //iterate through all courses with this grade and find the one with this subject
+    //
+    Teacher.findById(req.user.id, function (err, teacher){
+            if (err)
+            {
+                req.flash('info', 'Could not find teacher');
+                res.redirect('newcourse');
+            }
+            else
+            {
+                Course.findOne( { grade: req.body.courseGrade, subject: req.body.courseSubject }, function (err, course) {
+                    if (!course)
+                    {
+                        // if no course is found, we will add the course
+                        var newCourse = new Course({ grade: req.body.courseGrade, subject: req.body.courseSubject});
+                        newCourse.teachers.push(teacher);
+                        
+                        newCourse.save(function(err) {
+                            if (err)
+                            {
+                                req.flash('info', 'Saving the new course failed');
+                                res.redirect('newcourse');
+                            }
+                            else
+                            {
+                                console.log('New Course id: ' + newCourse._id);
+                                teacher.courses.push(newCourse);
+                                console.log('pushed');
+                                teacher.save(
+                                    function(err){
+                                        req.flash('info', 'Adding this course failed!');
+                                        res.redirect('newcourse');
+                                    }
+                                );
+                            }
+                        });
+                    }
+                    else
+                    {
+                        //course exists, 
+                        //only add it to the teacher, if the teacher doesnt already have it
+                        if (teacher.courses.indexOf(course._id) >= 0)
+                        {
+                            console.log('Enrolled');
+                            req.flash('info', 'You are already enrolled in this course!');
+                            res.redirect('newcourse');
+                        }
+                        else
+                        {
+                            teacher.courses.push(course);
+                            teacher.save(
+                                function(err){
+                                    if (err)
+                                    {
+                                        req.flash('info', 'Enrolling in this class failed');
+                                        res.redirect('newcourse');
+                                    }
+                                    else
+                                    {
+                                        course.teachers.push(teacher);
+                                        course.save(function(err){
+                                            if (err)
+                                            {
+                                                req.flash('info', 'Saving the course failed');
+                                            }
+                                            else
+                                            {
+                                                req.flash('info', 'Success!');
+                                            }
+                                            res.redirect('newcourse');
+                                        });
+                                    }
+                                });
+                        }
+                    }
+                } );
+            }
+    });
 });
 
 module.exports = router;

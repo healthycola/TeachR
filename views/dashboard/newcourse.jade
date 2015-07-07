@@ -1,15 +1,16 @@
 extends layoutdash
 
 block dashcontent
-        form#formAddCourse.form-register(name="newclass",method="post",action="/createcourse")
+        - if (messagse)
+        form#formAddCourse.form-newCourse(name="newcourse",method="post",action="/createcourse")
                 h2.page-header New Course
-                label(for='courseGrade') Grade
+                label.form-group-lg(for='courseGrade') Grade
                 - var courseNumber = 1
-                select#courseGrade.form-control
+                select#courseGrade.form-control.input-sm(name="courseGrade")
                         while courseNumber <= 12 
                                 option= courseNumber++
                 label(for='courseSubject') Subject
-                select#courseSubject.form-control
+                select#courseSubject.form-control.input-sm(name="courseSubject")
                         - each val in [ 'Math', 'Science', 'English', 'Social Studies', 'Geography', 'History']
                                 option #{val}
                 p

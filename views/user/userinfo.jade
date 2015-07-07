@@ -11,4 +11,8 @@ block content
         p School: #{user.school}
         p Email: #{user.email}
         p Username: #{user.username}
+        - if (usercourses)
+            ul
+             - each course in usercourses
+                li Grade #{course.grade} #{course.subject}
         a(href='updateuserinfo') Change Info
