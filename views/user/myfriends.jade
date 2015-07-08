@@ -11,9 +11,11 @@ block content
         - if (myfollowers)
             ul
              - each follower in myfollowers
-                li #{follower}
+                li
+                    a(href='userinfo?id=' + follower._id.toHexString()) #{follower.name}
         h3 Following
         - if (myfollowing)
             ul
              - each following in myfollowing
-                li #{following}
+                li
+                    a(href='userinfo?id=' + following._id.toHexString()) #{following.name}

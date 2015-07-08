@@ -83,7 +83,7 @@ router.get('/myfriends', function(req,res) {
     Teacher.findById(req.user.id, function (err, teacher){
         if (err) {
             req.flash('info', 'Finding user failed');
-            res.render('user/myfriends');
+            res.render('user/myfriends', { message: req.flash('info') });
         }
         else {
             Teacher.find({ 
@@ -93,7 +93,7 @@ router.get('/myfriends', function(req,res) {
                     {
                         //Flash
                         req.flash('info', 'Unable to find following teachers');
-                        res.render('user/myfriends');
+                        res.render('user/myfriends', { message: req.flash('info') } );
                     }
                     else {
                         Teacher.find({ 
@@ -103,10 +103,10 @@ router.get('/myfriends', function(req,res) {
                             {
                                 //Flash
                                 req.flash('info', 'Unable to find following teachers');
-                                res.render('user/myfriends');
+                                res.render('user/myfriends', { message: req.flash('info') });
                             }
                             else {
-                                res.render('user/myfriends', { myfollowers: followers, myfollowing: following });
+                                res.render('user/myfriends', { message: req.flash('info') , myfollowers: followers, myfollowing: following });
                             } 
                         });
                     } 
@@ -141,6 +141,62 @@ router.get('/userinfo', function(req,res) {
                         res.render('user/userinfo', { requestedteacher: teacher, teachercourses: courses });
                     } 
                 });
+        }
+    });
+});
+
+router.get('/follow', function(req,res) {
+    if (!req.param('id') || req.param('id') == '')
+    {
+        req.flash('info', 'No User Specified');
+        res.render('/');
+    }
+    
+    Teacher.findById(req.param("id"), function (err, destTeacher){
+        if (err) {
+            req.flash('info', 'Finding user failed');
+            res.redirect('/');
+        }
+        else {
+            Teacher.findById(req.user.id, function (err, srcTeacher){
+                if (err) {
+                    req.flash('info', 'Finding user failed');
+                    res.redirect('/');
+                } 
+                else {
+                    if (srcTeacher.following.indexOf(destTeacher._id) >= 0)
+                    {
+                        req.flash('info', 'You are already following this teacher!');
+                        res.redirect('myfriends');
+                    }
+                    else
+                    {
+                        srcTeacher.following.push(destTeacher);
+                        srcTeacher.save(function(err){
+                                        if (err)
+                                        {
+                                            req.flash('info', 'Following this teacher failed!');
+                                        }
+                                        else
+                                        {
+                                            destTeacher.followers.push(srcTeacher);
+                                            destTeacher.save(function(err){
+                                                            if (err)
+                                                            {
+                                                                req.flash('info', 'Following this teacher failed!');
+                                                            }
+                                                            else
+                                                            {
+                                                                req.flash('info', 'Success!');
+                                                            }
+                                                            res.redirect('myfriends');
+                                                        });
+                                        }
+                                        res.redirect('myfriends');
+                                    });
+                    }
+                }
+            });
         }
     });
 });

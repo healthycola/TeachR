@@ -14,3 +14,5 @@ block content
                 li Grade #{course.grade} #{course.subject}
         - if (user && String(requestedteacher._id) == String(user._id)) 
             a(href='updateuserinfo') Change Info
+        - if (user && String(requestedteacher._id) != String(user._id))
+            a(href='follow?id=' + String(requestedteacher._id)) Follow this Teacher!
