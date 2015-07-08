@@ -18,4 +18,5 @@ block content
             ul
              - each following in myfollowing
                 li
-                    a(href='userinfo?id=' + following._id.toHexString()) #{following.name}
+                    a(href='userinfo?id=' + following._id.toHexString()) #{following.name} 
+                    a(href='unfollow?id=' + following._id.toHexString()) Unfollow 

@@ -82,6 +82,7 @@ router.get('/logout', function(req, res) {
 router.get('/myfriends', function(req,res) {
     Teacher.findById(req.user.id, function (err, teacher){
         if (err) {
+            console.log('finding user failed');
             req.flash('info', 'Finding user failed');
             res.render('user/myfriends', { message: req.flash('info') });
         }
@@ -92,7 +93,8 @@ router.get('/myfriends', function(req,res) {
                     if (err)
                     {
                         //Flash
-                        req.flash('info', 'Unable to find following teachers');
+                        console.log('Unable to find followed teachers');
+                        req.flash('info', 'Unable to find followed teachers');
                         res.render('user/myfriends', { message: req.flash('info') } );
                     }
                     else {
@@ -102,6 +104,7 @@ router.get('/myfriends', function(req,res) {
                             if (err)
                             {
                                 //Flash
+                                console.log('Unable to find following teachers')
                                 req.flash('info', 'Unable to find following teachers');
                                 res.render('user/myfriends', { message: req.flash('info') });
                             }
@@ -176,6 +179,7 @@ router.get('/follow', function(req,res) {
                                         if (err)
                                         {
                                             req.flash('info', 'Following this teacher failed!');
+                                            res.redirect('myfriends');
                                         }
                                         else
                                         {
@@ -184,15 +188,77 @@ router.get('/follow', function(req,res) {
                                                             if (err)
                                                             {
                                                                 req.flash('info', 'Following this teacher failed!');
+                                                                res.redirect('myfriends');
                                                             }
                                                             else
                                                             {
+                                                                console.log('Success');
                                                                 req.flash('info', 'Success!');
+                                                                res.redirect('myfriends');
                                                             }
-                                                            res.redirect('myfriends');
                                                         });
                                         }
-                                        res.redirect('myfriends');
+                                    });
+                    }
+                }
+            });
+        }
+    });
+});
+
+router.get('/unfollow', function(req,res) {
+    if (!req.param('id') || req.param('id') == '')
+    {
+        req.flash('info', 'No User Specified');
+        res.render('/');
+    }
+    
+    Teacher.findById(req.param("id"), function (err, destTeacher){
+        if (err) {
+            req.flash('info', 'Finding user failed');
+            res.redirect('/');
+        }
+        else {
+            Teacher.findById(req.user.id, function (err, srcTeacher){
+                if (err) {
+                    req.flash('info', 'Finding user failed');
+                    res.redirect('/');
+                } 
+                else {
+                    if (srcTeacher.following.indexOf(destTeacher._id) < 0)
+                    {
+                        req.flash('info', 'You are not following this teacher!');
+                        res.redirect('myfriends');
+                    }
+                    else
+                    {
+                        var indexSrcRemoval = srcTeacher.following.indexOf(destTeacher._id);
+                        srcTeacher.following.splice(indexSrcRemoval, 1);
+                        srcTeacher.save(function(err){
+                                        if (err)
+                                        {
+                                            req.flash('info', 'Removing this teacher failed!');
+                                            res.redirect('myfriends');
+                                        }
+                                        else
+                                        {
+                                            var indexDestRemoval = destTeacher.following.indexOf(srcTeacher._id);
+                                            destTeacher.followers.splice(indexDestRemoval, 1);
+                                            destTeacher.save(function(err){
+                                                            if (err)
+                                                            {
+                                                                console.log('Removing this teacher failed!');
+                                                                req.flash('info', 'Removing this teacher failed!');
+                                                                res.redirect('myfriends');
+                                                            }
+                                                            else
+                                                            {
+                                                                console.log('Success');
+                                                                req.flash('info', 'Success!');
+                                                                res.redirect('myfriends');
+                                                            }
+                                                        });
+                                        }
                                     });
                     }
                 }
