@@ -71,7 +71,7 @@ router.get('/login', function(req, res) {
 router.post('/login', 
     passport.authenticate('local', 
         { failureRedirect: '/login', failureFlash: true }), function (req, res) {
-    res.redirect('userinfo');
+    res.redirect('userinfo?id=' + req.user._id.toHexString());
 });
 
 router.get('/logout', function(req, res) {
@@ -116,10 +116,16 @@ router.get('/myfriends', function(req,res) {
 });
 
 router.get('/userinfo', function(req,res) {
-    Teacher.findById(req.user.id, function (err, teacher){
+    if (!req.param('id') || req.param('id') == '')
+    {
+        req.flash('info', 'No User Specified');
+        res.render('/');
+    }
+    
+    Teacher.findById(req.param("id"), function (err, teacher){
         if (err) {
             req.flash('info', 'Finding user failed');
-            res.render('user/userinfo');
+            res.render('/');
         }
         else {
             Course.find({ 
@@ -128,11 +134,11 @@ router.get('/userinfo', function(req,res) {
                     if (err)
                     {
                         //Flash
-                        req.flash('info', 'Unable to find courses');
-                        res.render('user/userinfo');
+                        req.flash('info', 'Unable to find courses for this teacher');
+                        res.render('user/userinfo', {requestedteacher: teacher});
                     }
                     else {
-                        res.render('user/userinfo', { usercourses: courses });
+                        res.render('user/userinfo', { requestedteacher: teacher, teachercourses: courses });
                     } 
                 });
         }
@@ -166,7 +172,7 @@ router.post('/updateuserinfo', function(req,res) {
             teacher.email = _email;
             
             teacher.save( function(err){
-                res.redirect('userinfo');
+                res.redirect('userinfo?id=' + req.user._id.toHexString());
             });
         });
     }

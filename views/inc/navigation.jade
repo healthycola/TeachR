@@ -16,7 +16,7 @@
                     ul.dropdown-menu(role='menu' aria-labelledby='dLabel')
                         - if (user)
                             li
-                                a(href='userinfo')
+                                a(href="userinfo?id=" + user._id.toHexString())
                                     i.fa.fa-cogs.fa-fw
                                     span  Control Panel
                             li

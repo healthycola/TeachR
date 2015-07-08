@@ -1,18 +1,16 @@
 extends ../layout
 
 block content
-    - if (!user)
-        p 
-        a(href='login') Please Log in
-    - if (user)
+    - if (requestedteacher)
         p 
         h2.page-header Teacher Information
-        p Name: #{user.name}
-        p School: #{user.school}
-        p Email: #{user.email}
-        p Username: #{user.username}
+        p Name: #{requestedteacher.name}
+        p School: #{requestedteacher.school}
+        p Email: #{requestedteacher.email}
+        p Username: #{requestedteacher.username}
         - if (usercourses)
             ul
-             - each course in usercourses
+             - each course in teachercourses
                 li Grade #{course.grade} #{course.subject}
-        a(href='updateuserinfo') Change Info
+        - if (user && String(requestedteacher._id) == String(user._id)) 
+            a(href='updateuserinfo') Change Info
