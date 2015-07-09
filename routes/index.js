@@ -339,7 +339,33 @@ router.get('/newentry', function(req, res) {
 });
 
 router.get('/newcourse', function(req, res) {
-    res.render('dashboard/newcourse', { message: req.flash('info') });
+    if (!req.user)
+    {
+        req.flash('info', 'No User Specified');
+        res.render('/');
+    }
+    
+    Teacher.findById(req.user.id, function (err, teacher){
+        if (err) {
+            req.flash('info', 'Finding user failed');
+            res.render('/');
+        }
+        else {
+            Course.find({ 
+                    _id: { $in: teacher.courses}
+                }, function (err, courses) {
+                    if (err)
+                    {
+                        //Flash
+                        req.flash('info', 'Unable to find courses for this teacher');
+                        res.render('dashboard/newcourse', { message: req.flash('info') });
+                    }
+                    else {
+                        res.render('dashboard/newcourse', { message: req.flash('info'), teachercourses: courses });
+                    } 
+                });
+        }
+    });
 });
 
 router.post('/createcourse', function(req, res) {
