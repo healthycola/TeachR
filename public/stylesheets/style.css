@@ -61,20 +61,20 @@ body {
 }
 
 /* Sidebar navigation */
-.nav-sidebar {
-  margin-right: -21px; /* 20px padding + 1px border */
+.nav-submenu {
+  margin-top:-20px;
+  background-color: #fbfbfb;
+  height: 50px;
+  line-height: 31px;
+  border-bottom: 2px solid;
+  border-bottom-color: #FF7F50 !important;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
   margin-bottom: 20px;
-  margin-left: -20px;
 }
-.nav-sidebar > li > a {
-  padding-right: 20px;
-  padding-left: 20px;
-}
-.nav-sidebar > .active > a,
-.nav-sidebar > .active > a:hover,
-.nav-sidebar > .active > a:focus {
-  color: #f7f7f7;
-  background-color: #428bca;
+
+a.nav-submenu {
+  background-color: #ffffff !important;
 }
 
 /* Hide for mobile, show later */

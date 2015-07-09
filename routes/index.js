@@ -323,7 +323,15 @@ router.get('/newentry', function(req, res) {
                         console.log('Finding courses failed');
                     }
                     else {
-                        res.render('dashboard/createlp', { message: req.flash('info'), usercourses: courses });
+                        if (courses.length < 1)
+                        {
+                            req.flash('info', 'Please enrol in a class before trying to create a lesson plan.');
+                            res.redirect('dashboard');
+                        }
+                        else
+                        {
+                            res.render('dashboard/createlp', { message: req.flash('info'), usercourses: courses });
+                        }
                     } 
                 });
         }

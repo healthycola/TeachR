@@ -5,7 +5,8 @@ html
         include inc/navigation
         .container-fluid-nopad
             block nopad-content
-        .container-fluid
+        .container
+            block navigation
             - if (message && message != '')
                 .alert.alert-warning #{message}
             block content

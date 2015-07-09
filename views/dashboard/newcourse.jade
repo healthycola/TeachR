@@ -1,9 +1,9 @@
 extends layoutdash
 
 block dashcontent
-        - if (messagse)
+        - if (message)
         form#formAddCourse.form-newCourse(name="newcourse",method="post",action="/createcourse")
-                h2.page-header New Course
+                h2.page-header Enrol in a new course
                 label.form-group-lg(for='courseGrade') Grade
                 - var courseNumber = 1
                 select#courseGrade.form-control.input-sm(name="courseGrade")
