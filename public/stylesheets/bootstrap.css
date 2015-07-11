@@ -1475,6 +1475,10 @@ blockquote {
   margin: 0 0 20px;
   font-size: 17.5px;
   border-left: 5px solid #eee;
+  font-family: Cambria, Cochin, Georgia, Times, Times New Roman, serif;
+  font-style: italic;
+  text-shadow: 0px 1px 1px #ffffff;
+	color: #222;
 }
 blockquote p:last-child,
 blockquote ul:last-child,
@@ -3096,8 +3100,8 @@ fieldset[disabled] .btn-default.active {
 }
 .btn-primary {
   color: #fff;
-  background-color: #337ab7;
-  border-color: #2e6da4;
+  background-color: #2F8CAB;
+  border-color: #2F8CAB;
 }
 .btn-primary:hover,
 .btn-primary:focus,
@@ -4077,7 +4081,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .navbar {
   position: relative;
-  min-height: 92px;
+  min-height: 110px;
   margin-bottom: 20px;
   border: 1px solid transparent;
 }
@@ -4189,9 +4193,9 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   float: left;
   height: 50px;
   padding: 15px 15px;
-  font-size: 30px;
+  font-size: 40px;
   line-height: 20px;
-  font-family: 'Shadows Into Light', cursive;
+  font-family: 'Yesteryear', cursive;
 }
 .navbar-brand:hover,
 .navbar-brand:focus {
@@ -4241,7 +4245,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .navbar-nav > li > a {
   padding-top: 10px;
   padding-bottom: 10px;
-  line-height: 50px;
+  line-height: 70px;
 }
 @media (max-width: 767px) {
   .navbar-nav .open .dropdown-menu {
@@ -4412,7 +4416,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   border-color: #e7e7e7;
 }
 .navbar-default .navbar-brand {
-  line-height: 50px;
+  line-height: 75px;
   color: #FA344B;
 }
 .navbar-default .navbar-brand:hover,
@@ -4423,9 +4427,18 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .navbar-default .navbar-text {
   color: #777;
 }
+
 .navbar-default .navbar-nav > li > a {
   color: #777;
+  border-right: 1px solid #e8e8e8;
+  line-height: 30px;
+  margin-top: 20px;
+  height: 60px;
 }
+.navbar-default .navbar-nav > li:last-child > a{
+  border-right: 1px solid transparent;
+}
+
 .navbar-default .navbar-nav > li > a:hover,
 .navbar-default .navbar-nav > li > a:focus {
   color: #FA344B;
