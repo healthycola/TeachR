@@ -194,3 +194,12 @@ body {
 .main .page-header {
   margin-top: 0;
 }
+
+.dl-horizontal {
+  background-color: white;
+  padding: 10px;
+  border-bottom: 2px solid;
+  border-bottom-color: #FF7F50 !important;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}

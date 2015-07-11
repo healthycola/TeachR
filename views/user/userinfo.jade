@@ -4,18 +4,34 @@ block content
     - if (requestedteacher)
         p 
         h2.page-header Teacher Information
-        p Name: #{requestedteacher.name}
-        p School: #{requestedteacher.school}
-        p Email: #{requestedteacher.email}
-        p Username: #{requestedteacher.username}
-        - if (usercourses)
-            ul
-             - each course in teachercourses
-                li Grade #{course.grade} #{course.subject}
-        - if (user && String(requestedteacher._id) == String(user._id)) 
-            a(href='updateuserinfo') Change Info
-        - if (user && String(requestedteacher._id) != String(user._id))
-            if (user.following.indexOf(requestedteacher._id) >= 0)
-                a(href='unfollow?id=' + String(requestedteacher._id)) Unfollow
-            else
-                a(href='follow?id=' + String(requestedteacher._id)) Follow this Teacher!
+        dl.dl-horizontal
+            - if (user && String(requestedteacher._id) == String(user._id))
+                .text-right 
+                    a(href='updateuserinfo')
+                        i.fa.fa-cogs.fa-fw
+            dt Name
+            dd #{requestedteacher.name}
+            dt School
+            dd #{requestedteacher.school}
+            dt Email
+            dd #{requestedteacher.email}
+            dt Username 
+            dd #{requestedteacher.username}
+            - if (teachercourses && teachercourses.length > 0)
+                dt Courses
+                dd
+                    ul.list-unstyled
+                     - each course in teachercourses
+                        li Grade #{course.grade} #{course.subject}
+            - if (user && String(requestedteacher._id) != String(user._id))
+                dt Friendship
+                dd
+                    ul.list-unstyled
+                        if (user.followers.indexOf(requestedteacher._id) >= 0)
+                            li #{requestedteacher.name} follows you!
+                        if (user.following.indexOf(requestedteacher._id) >= 0)
+                            li
+                                a(href='unfollow?id=' + String(requestedteacher._id)) Unfollow
+                        else
+                            li
+                                a(href='follow?id=' + String(requestedteacher._id)) Follow this Teacher!

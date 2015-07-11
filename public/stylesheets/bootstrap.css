@@ -1440,13 +1440,33 @@ dl {
 dt,
 dd {
   line-height: 1.42857143;
+  margin-top: 8px;
+  margin-bottom: 3px;
 }
+
 dt {
   font-weight: bold;
+  font-style: oblique;
+  padding-right:10px;
 }
+
 dd {
   margin-left: 0;
+  border-bottom: 1px solid;
+  border-bottom-color: #e8e8e8 !important;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 0px;
+  padding-left:10px;
 }
+
+dt:last-child {
+  border-bottom: 0px solid !important;
+}
+
+dd:last-child {
+  border-bottom: 0px solid;
+}
+
 @media (min-width: 768px) {
   .dl-horizontal dt {
     float: left;
