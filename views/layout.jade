@@ -1,13 +1,14 @@
 doctype
 html
-    include inc/header
-    body
-        include inc/navigation
-        .container-fluid-nopad
-            block nopad-content
-        .container
-            block navigation
-            - if (message && message != '')
-                .alert.alert-warning #{message}
-            block content
+    .wrap
+        include inc/header
+        body
+            include inc/navigation
+            .container-fluid-nopad
+                block nopad-content
+            .container
+                block navigation
+                - if (message && message != '')
+                    .alert.alert-warning #{message}
+                block content
     include inc/footer

@@ -15,4 +15,7 @@ block content
         - if (user && String(requestedteacher._id) == String(user._id)) 
             a(href='updateuserinfo') Change Info
         - if (user && String(requestedteacher._id) != String(user._id))
-            a(href='follow?id=' + String(requestedteacher._id)) Follow this Teacher!
+            if (user.following.indexOf(requestedteacher._id) >= 0)
+                a(href='unfollow?id=' + String(requestedteacher._id)) Unfollow
+            else
+                a(href='follow?id=' + String(requestedteacher._id)) Follow this Teacher!
