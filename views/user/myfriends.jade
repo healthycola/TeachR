@@ -5,22 +5,29 @@ block content
         p 
         a(href='login') Please Log in
     - if (user)
-        p 
         h2.page-header My Friends
-        h3 Followers
-        - if (myfollowers)
-            ul
-             - each follower in myfollowers
-                li
-                    a(href='userinfo?id=' + follower._id.toHexString()) #{follower.name}
-        - if (!myfollowers || myfollowers == '')
-            p Sorry, but nobody is following you. Get involved and this will change!
-        h3 Following
-        - if (myfollowing)
-            ul
-             - each following in myfollowing
-                li
-                    a(href='userinfo?id=' + following._id.toHexString()) #{following.name} 
-                    a(href='unfollow?id=' + following._id.toHexString()) Unfollow 
-        - if (!myfollowing || myfollowing == '')
-            p You don't follow anyone yet!
+        .row
+            .col-md-6
+                h3 Followers
+                - if (myfollowers && myfollowers != '')
+                    ul.list-unstyled.myfriends
+                     - each follower in myfollowers
+                        li
+                            a(href='userinfo?id=' + follower._id.toHexString()) #{follower.name}
+                - if (!myfollowers || myfollowers == '')
+                    p Sorry, but nobody is following you. Get involved and this will change!
+            .col-md-6
+                h3 Following
+                - if (myfollowing && myfollowing != '')
+                    ul.list-unstyled.myfriends
+                     - each following in myfollowing
+                        li
+                            .row
+                                .col-md-8
+                                    a(href='userinfo?id=' + following._id.toHexString()) #{following.name}
+                                .col-md-4 
+                                    a(href='unfollow?id=' + following._id.toHexString())
+                                        .text-right
+                                            i.fa.fa-minus.fa-fw
+                - if (!myfollowing || myfollowing == '')
+                    p You don't follow anyone yet!

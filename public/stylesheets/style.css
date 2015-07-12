@@ -203,3 +203,23 @@ body {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
 }
+
+.myfriends {
+  background-color: white;
+  padding: 0px 20px 20px 20px;
+  border-bottom: 2px solid;
+  border-bottom-color: #FF7F50 !important;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.myfriends > li {
+  border-bottom: 1px solid;
+  border-bottom-color: #e8e8e8 !important;
+  padding-top: 20px;
+  padding-left: 10px
+}
+
+.myfriends > li:hover {
+  border-bottom-color: #a8a8a8 !important;
+}

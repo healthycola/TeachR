@@ -1193,6 +1193,7 @@ h6,
   font-weight: 500;
   line-height: 1.1;
   color: inherit;
+  text-shadow:1px 1px 0 white;
 }
 h1 small,
 h2 small,
@@ -1437,17 +1438,20 @@ dl {
   margin-top: 0;
   margin-bottom: 20px;
 }
+
 dt,
 dd {
   line-height: 1.42857143;
-  margin-top: 8px;
-  margin-bottom: 3px;
+  padding-top: 5px;
+  padding-bottom: 3px;
 }
 
 dt {
   font-weight: bold;
   font-style: oblique;
   padding-right:10px;
+  border-bottom: 1px solid;
+  border-bottom-color: transparent !important;
 }
 
 dd {
@@ -4216,6 +4220,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   font-size: 40px;
   line-height: 20px;
   font-family: 'Yesteryear', cursive;
+  text-shadow:1px 1px 0 white;
 }
 .navbar-brand:hover,
 .navbar-brand:focus {
