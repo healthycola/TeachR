@@ -6,7 +6,7 @@ block dashcontent
     script(src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js')
     //script tinymce.init({selector:'textarea'});
     h2.page-header Create New Lesson Plan
-    form(name='createLessonPlanForm' novalidate ng-app="createLessonPlanForm" ng-controller="validateCtrl")
+    form(name='createLessonPlanForm' novalidate ng-app)
         .row
             .col-md-12
                 .form-group(
@@ -93,4 +93,3 @@ block dashcontent
             a(href='#') Add More
         .form-group
             button.btn.btn-default(ng-disabled="createLessonPlanForm.$invalid") Submit
-    script(src='/javascripts/createLPFormValidate.js')

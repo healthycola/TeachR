@@ -1,8 +1,13 @@
 extends ../layout
 
-block content                
+block content
+    script(src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js')     
     - if (!user)
-        form#formAddUser.form-register(name="adduser",method="post",action="register")
+        form#formAddUser.form-register(
+            name="register", 
+            method="post", 
+            action="register"
+            novalidate ng-app)
             - if (errors || registerFail)
                 .alert.alert-warning
                     p.errorMessage= "The following errors occurred:"
@@ -13,18 +18,81 @@ block content
                     - if (registerFail)
                             p.errorMessage= registerFail.message
             h2.page-header Register
-            label(for='inputName') Name
-            input#inputName.form-control(type="text", placeholder="Name", name="name")
-            label(for='inputSchool') School
-            input#inputSchool.form-control(type="text", placeholder="School", name="school")
-            label(for='inputUserName') User Name
-            input#inputUserName.form-control(type="text", placeholder="User Name", name="username")
-            label(for='inputUserEmail') Email
-            input#inputUserEmail.form-control(type="text", placeholder="User Email", name="useremail")
-            label(for='inputUserPassword') Password
-            input#inputUserPassword.form-control(type="password", placeholder="Password", name="password")
+            .form-group(
+                ng-class="( register.name.$dirty ? (register.name.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
+                label(for='inputName') Name
+                input#inputName.form-control(
+                    type="text"
+                    placeholder="Name"
+                    name="name"
+                    ng-model='user.name'
+                    required)
+                //Invalid
+                <span ng-if="register.name.$invalid && register.name.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
+                //Valid
+                <p ng-show="register.name.$invalid && register.name.$dirty" class="bg-danger pad">Please enter your name.</p>
+            .form-group(
+                ng-class="( register.school.$dirty ? (register.school.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
+                label(for='inputSchool') School
+                input#inputSchool.form-control(
+                    type="text", 
+                    placeholder="School", 
+                    name="school"
+                    ng-model='user.school'
+                    required)
+                //Invalid
+                <span ng-if="register.school.$invalid && register.school.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
+                //Valid
+                <p ng-show="register.school.$invalid && register.school.$dirty" class="bg-danger pad">Please enter your school.</p>
+            .form-group(
+                ng-class="( register.username.$dirty ? (register.username.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
+                label(for='inputUserName') User Name
+                input#inputUserName.form-control(
+                    type="text", 
+                    placeholder="User Name", 
+                    name="username"
+                    ng-model='user.username'
+                    ng-minlength='3'
+                    ng-maxlength='10'
+                    required)
+                //Invalid
+                <span ng-if="register.username.$invalid && register.username.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
+                //Valid
+                <p ng-show="register.username.$invalid && register.username.$dirty" class="bg-danger pad">Please enter a valid username.</p>
+                <p ng-show="register.username.$dirty && register.username.$error.minlength" class="bg-danger pad">Username needs to be atleast 3 characters</p>
+                <p ng-show="register.username.$dirty && register.username.$error.maxlength" class="bg-danger pad">Username needs to be less than 10 characters</p>
+            .form-group(
+                ng-class="( register.email.$dirty ? (register.email.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
+                label(for='inputUserEmail') Email
+                input#inputUserEmail.form-control(
+                    type="email", 
+                    placeholder="User Email", 
+                    name="email"
+                    ng-model='user.email'
+                    required)
+                //Invalid
+                <span ng-if="register.email.$invalid && register.email.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
+                //Valid
+                <p ng-show="register.email.$invalid && register.email.$dirty" class="bg-danger pad">Please enter a valid email.</p>
+            .form-group(
+                ng-class="( register.password.$dirty ? (register.password.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
+                label(for='inputUserPassword') Password
+                input#inputUserPassword.form-control(
+                    type="password", 
+                    placeholder="Password", 
+                    name="password"
+                    ng-model='user.password'
+                    ng-minlength='5'
+                    required)
+                //Invalid
+                <span ng-if="register.password.$invalid && register.password.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
+                //Valid
+                <p ng-show="register.password.$invalid && register.password.$dirty" class="bg-danger pad">Please enter a password</p>
+                <p ng-show="register.password.$dirty && register.password.$error.minlength" class="bg-danger pad">Password needs to be atleast 5 characters</p>
             p
-            button.btn.btn-lg.btn-default.btn-block(type="submit") Register
+            button.btn.btn-lg.btn-default.btn-block(
+                ng-disabled="register.$invalid"
+                type="submit") Register
         p.text-center
             a(href='login') Already a user?
     - if (user)

@@ -25,19 +25,6 @@ router.get('/register', function(req, res) {
 });
 
 router.post('/register', function(req, res) {
-    req.assert('name', 'Name is required').isAscii();           //Validate name
-    req.assert('username', 'A valid username is required').notEmpty();  //Validate email
-    req.assert('useremail', 'A valid email is required').isEmail();           //Validate name
-    req.assert('password', 'The password must be between 5-10 characters').isLength(5,10);  //Validate email
-    
-    var errors = req.validationErrors();  
-    if (errors) {   //Display errors to user
-        return res.render('user/register', {
-            message: '',
-            errors: errors
-        });
-    }
-    
     Teacher.register(
         new Teacher(
             { 
