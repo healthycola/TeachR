@@ -15,7 +15,6 @@
     "serve-favicon": "~2.1.3",
     "debug": "~2.0.0",
     "jade": "~1.11.0",
-    "express-validator": "*",
     "mongodb": "*",
     "mongoose": "^4.0.7",
     "passport": "^0.2.1",

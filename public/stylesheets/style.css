@@ -12,7 +12,7 @@ body {
 .wrap {
   min-height: 100%;
   /* equal to footer height */
-  margin-bottom: -120px; 
+  margin-bottom: -100px; 
 }
 .wrap:after {
   content: "";
@@ -212,6 +212,17 @@ body {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
 }
+
+form {
+  background-color: white;
+  padding: 20px;
+  margin-bottom:20px;
+  border-bottom: 2px solid;
+  border-bottom-color: #FF7F50 !important;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
 
 .myfriends > li {
   border-bottom: 1px solid;

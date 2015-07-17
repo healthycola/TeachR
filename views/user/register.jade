@@ -93,8 +93,8 @@ block content
             button.btn.btn-lg.btn-default.btn-block(
                 ng-disabled="register.$invalid"
                 type="submit") Register
-        p.text-center
-            a(href='login') Already a user?
+            p.text-center
+                a(href='login') Already a user?
     - if (user)
         .alert.alert-warning Hey #{user.name}, looks like you are already registered!
     - if (err)
