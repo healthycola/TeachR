@@ -2,6 +2,7 @@ var express = require('express');
 var passport = require('passport');
 var Teacher = require('../models/teacher');
 var Course = require('../models/course');
+var LessonPlan = require('../models/lessonplan');
 var router = express.Router();
 
 /* GET home page. */
@@ -131,9 +132,7 @@ router.get('/userinfo', function(req,res) {
             res.render('/');
         }
         else {
-            Course.find({ 
-                    _id: { $in: teacher.courses}
-                }, function (err, courses) {
+            Course.findAllCoursesFromTeacher(teacher, function (err, courses) {
                     if (err)
                     {
                         //Flash
@@ -148,60 +147,28 @@ router.get('/userinfo', function(req,res) {
     });
 });
 
+function ErrorFunction(req, res, flashMessage, redirectPath)
+{
+    req.flash('info', flashMessage);
+    res.render(redirectPath);
+} 
+
 router.get('/follow', function(req,res) {
     if (!req.param('id') || req.param('id') == '')
     {
-        req.flash('info', 'No User Specified');
-        res.render('/');
+        ErrorFunction(req, res, 'No User Specified', '/');
     }
     
-    Teacher.findById(req.param("id"), function (err, destTeacher){
-        if (err) {
-            req.flash('info', 'Finding user failed');
-            res.redirect('/');
+    Teacher.FollowTeacher(req.user.id, req.param("id"), function(sourceUser, destUser, err){
+        if (err)
+        {
+            ErrorFunction(req, res, 'Following this teacher failed', 'myfriends');
         }
-        else {
-            Teacher.findById(req.user.id, function (err, srcTeacher){
-                if (err) {
-                    req.flash('info', 'Finding user failed');
-                    res.redirect('/');
-                } 
-                else {
-                    if (srcTeacher.following.indexOf(destTeacher._id) >= 0)
-                    {
-                        req.flash('info', 'You are already following this teacher!');
-                        res.redirect('myfriends');
-                    }
-                    else
-                    {
-                        srcTeacher.following.push(destTeacher);
-                        srcTeacher.save(function(err){
-                                        if (err)
-                                        {
-                                            req.flash('info', 'Following this teacher failed!');
-                                            res.redirect('myfriends');
-                                        }
-                                        else
-                                        {
-                                            destTeacher.followers.push(srcTeacher);
-                                            destTeacher.save(function(err){
-                                                            if (err)
-                                                            {
-                                                                req.flash('info', 'Following this teacher failed!');
-                                                                res.redirect('myfriends');
-                                                            }
-                                                            else
-                                                            {
-                                                                console.log('Success');
-                                                                req.flash('info', 'Success!');
-                                                                res.redirect('myfriends');
-                                                            }
-                                                        });
-                                        }
-                                    });
-                    }
-                }
-            });
+        else
+        {
+            console.log('Success');
+            req.flash('info', 'Success!');
+            res.redirect('myfriends');
         }
     });
 });
@@ -213,56 +180,16 @@ router.get('/unfollow', function(req,res) {
         res.render('/');
     }
     
-    Teacher.findById(req.param("id"), function (err, destTeacher){
-        if (err) {
-            req.flash('info', 'Finding user failed');
-            res.redirect('/');
+    Teacher.UnfollowTeacher(req.user.id, req.param("id"), function(sourceUser, destUser, err){
+        if (err)
+        {
+            ErrorFunction(req, res, 'Unfollowing this teacher failed', 'myfriends');
         }
-        else {
-            Teacher.findById(req.user.id, function (err, srcTeacher){
-                if (err) {
-                    req.flash('info', 'Finding user failed');
-                    res.redirect('/');
-                } 
-                else {
-                    if (srcTeacher.following.indexOf(destTeacher._id) < 0)
-                    {
-                        req.flash('info', 'You are not following this teacher!');
-                        res.redirect('myfriends');
-                    }
-                    else
-                    {
-                        var indexSrcRemoval = srcTeacher.following.indexOf(destTeacher._id);
-                        srcTeacher.following.splice(indexSrcRemoval, 1);
-                        srcTeacher.save(function(err){
-                                        if (err)
-                                        {
-                                            req.flash('info', 'Removing this teacher failed!');
-                                            res.redirect('myfriends');
-                                        }
-                                        else
-                                        {
-                                            var indexDestRemoval = destTeacher.following.indexOf(srcTeacher._id);
-                                            destTeacher.followers.splice(indexDestRemoval, 1);
-                                            destTeacher.save(function(err){
-                                                            if (err)
-                                                            {
-                                                                console.log('Removing this teacher failed!');
-                                                                req.flash('info', 'Removing this teacher failed!');
-                                                                res.redirect('myfriends');
-                                                            }
-                                                            else
-                                                            {
-                                                                console.log('Success');
-                                                                req.flash('info', 'Success!');
-                                                                res.redirect('myfriends');
-                                                            }
-                                                        });
-                                        }
-                                    });
-                    }
-                }
-            });
+        else
+        {
+            console.log('Success');
+            req.flash('info', 'Success!');
+            res.redirect('myfriends');
         }
     });
 });
@@ -314,9 +241,7 @@ router.get('/newentry', function(req, res) {
             console.log('Finding user failed');
         }
         else {
-            Course.find({ 
-                    _id: { $in: teacher.courses}
-                }, function (err, courses) {
+            Course.findAllCoursesFromTeacher(teacher, function (err, courses) {
                     if (err)
                     {
                         //Flash
@@ -330,12 +255,49 @@ router.get('/newentry', function(req, res) {
                         }
                         else
                         {
-                            res.render('dashboard/createlp', { message: req.flash('info'), usercourses: courses });
+                            //res.render('dashboard/createlp', { message: req.flash('info'), usercourses: courses });
+                            
+                            LessonPlan.findAllLessonsFromTeacher(teacher, function (err, lessonPlans) {
+                                if (err)
+                                {
+                                    req.flash('info', 'Error looking for lessons');
+                                    res.redirect('dashboard');
+                                }
+                                else
+                                {
+                                    var courseLessonMap = {};
+                                    lessonPlans.forEach(function(element) {
+                                        courseLessonMap[element.course].push(element);
+                                    }, this);
+                                    
+                                    console.log(courseLessonMap);
+                                    
+                                    res.render('dashboard/createlp', { message: req.flash('info'), 
+                                        usercourses: courses, 
+                                        courseLessonPlan: courseLessonMap });
+                                }
+                            });
                         }
                     } 
                 });
         }
     });
+});
+
+router.post('/newentry', function(req, res) {
+    req.assert('name', 'Name is required').isAscii();           //Validate name
+    req.assert('username', 'A valid username is required').notEmpty();  //Validate email
+    req.assert('useremail', 'A valid email is required').isEmail();           //Validate name
+    req.assert('password', 'The password must be between 5-10 characters').isLength(5,10);  //Validate email
+    
+    var errors = req.validationErrors();  
+    if (errors) {   //Display errors to user
+        return res.render('user/register', {
+            message: '',
+            errors: errors
+        });
+    }
+    
 });
 
 router.get('/newcourse', function(req, res) {
@@ -456,5 +418,7 @@ router.post('/createcourse', function(req, res) {
             }
     });
 });
+
+
 
 module.exports = router;

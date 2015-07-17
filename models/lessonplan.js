@@ -14,4 +14,10 @@ var LessonPlan = new Schema({
 	average_rating: Number
 });
 
+LessonPlan.statics.findAllLessonsFromTeacher = function(teacher, cb) {
+    return this.find({
+        _id: { $in: teacher.lessonPlans }
+    }, cb);
+}
+
 module.exports = mongoose.model('LessonPlan', LessonPlan);

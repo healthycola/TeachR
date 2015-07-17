@@ -8,4 +8,10 @@ var Course = new Schema({
 	lessonplans: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }]
 });
 
+Course.statics.findAllCoursesFromTeacher = function (teacher, cb) {
+    return this.find({ 
+        _id: { $in: teacher.courses}
+    }, cb);
+}
+
 module.exports = mongoose.model('Course', Course);

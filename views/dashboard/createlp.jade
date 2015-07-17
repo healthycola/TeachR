@@ -1,45 +1,89 @@
 extends layoutdash
 
 block dashcontent
-    script(src='//tinymce.cachefly.net/4.2/tinymce.min.js')
-    script tinymce.init({selector:'textarea'});
+    script(src='/javascripts/selectionLoad.js')
+    // script(src='//tinymce.cachefly.net/4.2/tinymce.min.js')
+    script(src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js')
+    //script tinymce.init({selector:'textarea'});
     h2.page-header Create New Lesson Plan
-    form
-        label(for='lessonTitle') Title
-        input#lessonTitle.form-control(type='text' placeholder='Title of lesson plan')
-        p
-        .form-group
-                    label(for='course') Courses
-                    select.form-control
-                        - each course in usercourses
-                            option Grade #{course.grade} #{course.subject}
-        p
+    form(name='createLessonPlanForm' novalidate ng-app="createLessonPlanForm" ng-controller="validateCtrl")
+        .row
+            .col-md-12
+                .form-group(
+                    ng-class="( createLessonPlanForm.title.$dirty ? (createLessonPlanForm.title.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
+                    label.requiredLabel(for='lessonTitle') Title
+                    input#lessonTitle.form-control(
+                        placeholder='Title of lesson plan'
+                        name='title'
+                        ng-model='lessonPlan.title'
+                        required)
+                    //Invalid
+                    <span ng-if="createLessonPlanForm.title.$invalid && createLessonPlanForm.title.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
+                    //Valid
+                    <p ng-show="createLessonPlanForm.title.$invalid && createLessonPlanForm.title.$dirty" class="bg-danger pad">Please enter valid title.</p>
+        .row
+            .col-md-12
+                .form-group(
+                    ng-class="( createLessonPlanForm.course.$dirty ? (createLessonPlanForm.course.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
+                        label(for='course') Courses
+                        - var test = JSON.stringify(usercourses)
+                        - var test2 = JSON.stringify(courseLessonPlan)
+                        select.form-control(name="course" onchange="valChange(this, 'lessonLinks', #{test}, #{test2})" ng-model="lessonPlan.course" required)
+                            - each course in usercourses
+                                option Grade #{course.grade} #{course.subject}
+                        //Invalid
+                        <span ng-if="createLessonPlanForm.course.$invalid && createLessonPlanForm.course.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
+                        //Valid
+                        <p ng-show="createLessonPlanForm.course.$invalid && createLessonPlanForm.course.$dirty" class="bg-danger pad">Please select a course.</p>
         .row
             .col-md-8
                 .form-group
                     label(for='lessonlink') Link this to another lesson
-                    select.form-control
-                                option Lesson 1
-                                option Lesson 2
-                                option Lesson 3
+                    select#lessonLinks.form-control
             .col-md-4
-                .form-group
                     label(for='lessonlink') Duration of Lesson
-                    form.form-inline
-                        .form-group
+                    .form-group(
+                            ng-class="( createLessonPlanForm.duration.$dirty ? (createLessonPlanForm.duration.$valid ? 'has-success' : 'has-error' ) : ' ')")
                             .input-group
-                                input#exampleInputAmount.form-control(type="text" placeholder="Duration")
+                                input#exampleInputAmount.form-control(type="number" name="duration" placeholder="Duration" ng-model="lessonPlan.duration" required)
                                 .input-group-addon Days
-        p
+                        //Invalid
+                        <span ng-if="createLessonPlanForm.duration.$invalid && createLessonPlanForm.duration.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
+                        //Valid
+                        <p ng-show="createLessonPlanForm.duration.$invalid && createLessonPlanForm.duration.$dirty" class="bg-danger pad">Please enter an estimated duration.</p>
         .row
             .col-md-8
-                .form-group
-                    label(for='lessonPlan') Lesson Plan
-                    textarea#lessonText.form-control(rows='10' placeholder='Lesson Plan')
+                .form-group(
+                    ng-class="( createLessonPlanForm.LessonPlanText.$dirty ? (createLessonPlanForm.LessonPlanText.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
+                    label(for='LessonPlanText') Lesson Plan
+                    textarea#lessonText.form-control(
+                        type="text"
+                        name="LessonPlanText" 
+                        rows='10' 
+                        placeholder='Lesson Plan'
+                        ng-model='lessonPlan.LessonPlanText' 
+                        required)
+                    //Invalid
+                    <span ng-if="createLessonPlanForm.LessonPlanText.$invalid && createLessonPlanForm.LessonPlanText.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
+                    //Valid
+                    <p ng-show="createLessonPlanForm.LessonPlanText.$invalid && createLessonPlanForm.LessonPlanText.$dirty" class="bg-danger pad">Please enter some text.</p>
+                    
             .col-md-4
-                .form-group
+                .form-group(
+                    ng-class="( createLessonPlanForm.expectations.$dirty ? (createLessonPlanForm.expectations.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
                     label(for='lessonExpectations') Expectations
-                    textarea#lessonText.form-control(rows='10' placeholder='Expectations')
+                    textarea#lessonText.form-control(
+                        rows='10' 
+                        name='expectations' 
+                        ng-model='lessonPlan.expectations' 
+                        placeholder='Expectations' 
+                        required)
+                        
+                        //Invalid
+                    <span ng-if="createLessonPlanForm.expectations.$invalid && createLessonPlanForm.expectations.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
+                    //Valid
+                    <p ng-show="createLessonPlanForm.expectations.$invalid && createLessonPlanForm.expectations.$dirty" class="bg-danger pad">Please enter some text.</p>
+                    
         p
         .form-group
             .attachmentgroup
@@ -47,3 +91,6 @@ block dashcontent
                 input#Attachments(type="file")
             p
             a(href='#') Add More
+        .form-group
+            button.btn.btn-default(ng-disabled="createLessonPlanForm.$invalid") Submit
+    script(src='/javascripts/createLPFormValidate.js')

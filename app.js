@@ -10,8 +10,7 @@ var LocalStrategy = require('passport-local').Strategy;
 var expressValidator = require('express-validator');
 var flash = require('connect-flash');
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
+var routes = require('./routes');
 
 var app = express();
 
@@ -46,7 +45,6 @@ app.use(function(req, res, next){
 });
 
 app.use('/', routes);
-app.use('/users', users);
 
 // passport config
 var Teacher = require('./models/teacher');

@@ -26,7 +26,7 @@ block content
                                 .col-md-8
                                     a(href='userinfo?id=' + following._id.toHexString()) #{following.name}
                                 .col-md-4 
-                                    a(href='unfollow?id=' + following._id.toHexString())
+                                    a(href='unfollow?id=' + following._id.toHexString() alt="Unfollow")
                                         .text-right
                                             i.fa.fa-minus.fa-fw
                 - if (!myfollowing || myfollowing == '')
