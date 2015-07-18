@@ -44,13 +44,18 @@ block dashcontent
             .col-md-8
                 .form-group
                     label(for='lessonlink') Link this to another lesson
-                    select#lessonLinks.form-control
+                    select#lessonLinks.form-control(name='lessonlink')
             .col-md-4
-                    label(for='lessonlink') Duration of Lesson
+                    label(for='lessonDuration') Duration of Lesson
                     .form-group(
                             ng-class="( createLessonPlanForm.duration.$dirty ? (createLessonPlanForm.duration.$valid ? 'has-success' : 'has-error' ) : ' ')")
                             .input-group
-                                input#exampleInputAmount.form-control(type="number" name="duration" placeholder="Duration" ng-model="lessonPlan.duration" required)
+                                input#exampleInputAmount.form-control(
+                                    type="number" 
+                                    name="duration" 
+                                    placeholder="Duration" 
+                                    ng-model="lessonPlan.duration" 
+                                    required)
                                 .input-group-addon Days
                         //Invalid
                         <span ng-if="createLessonPlanForm.duration.$invalid && createLessonPlanForm.duration.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>

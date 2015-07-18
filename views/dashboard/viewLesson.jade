@@ -1,0 +1,23 @@
+extends layoutdash
+
+block dashcontent
+    h2.page-header Lesson Plan
+    dl.dl-horizontal
+            //- if (user && String(requestedteacher._id) == String(user._id))
+            //    .text-right 
+            //        a(href='updateuserinfo')
+            //            i.fa.fa-cogs.fa-fw
+            dt Title
+            dd #{lessonPlan.title}
+            dt Course
+            dd Grade #{lessonPlan.grade} #{lessonPlan.subject}
+            - if (lessonPlan.parent)
+                dt Parent Lesson
+                dd #{lessonPlan.parentTitle}
+            dt Author 
+            dd #{lessonPlan.author}
+            dt LessonPlan 
+            dd #{lessonPlan.text}
+            dt Expectations 
+            dd #{lessonPlan.expectations}
+            

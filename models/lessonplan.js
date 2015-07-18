@@ -14,9 +14,26 @@ var LessonPlan = new Schema({
 	average_rating: Number
 });
 
+LessonPlan.methods.addChild = function(childReference, cb) {
+    this.children.push(childReference);
+    this.save(cb);
+}
+
 LessonPlan.statics.findAllLessonsFromTeacher = function(teacher, cb) {
     return this.find({
         _id: { $in: teacher.lessonPlans }
+    }, cb);
+}
+
+LessonPlan.statics.findLessonPlanWithName = function(lessonPlanName, cb) {
+    return this.find({
+        title: lessonPlanName
+    }, cb);
+}
+
+LessonPlan.statics.findAllLessons = function (lessonIDs, cb) {
+    return this.find({ 
+        _id: { $in: lessonIDs}
     }, cb);
 }
 

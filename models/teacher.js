@@ -14,6 +14,11 @@ var Teacher = new Schema({
     followers: [{ type: Schema.Types.ObjectId, ref: 'Teacher' }]
 });
 
+Teacher.methods.addlessonPlan = function(lessonPlan, cb) {
+  this.lessonPlans.push(lessonPlan);
+  this.save(cb);
+}
+
 Teacher.methods.follow = function(otherTeacher, cb) {
   this.following.push(otherTeacher);
   this.save(cb);
@@ -113,6 +118,10 @@ Teacher.statics.UnfollowTeacher = function (sourceUserId, destUserId, cb) {
       }); 
     }
   });
+}
+
+Teacher.statics.getAllLessonPlans = function(teacherID, cb) {
+  return this.findById(teacherID, 'lessonPlans', cb);
 }
 
 Teacher.plugin(passportLocalMongoose);
