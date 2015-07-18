@@ -4,10 +4,6 @@ block dashcontent
     h2.page-header Lessons by #{teacherName}
     - each lesson in requestedLessonPlans
         dl.dl-horizontal
-                //- if (user && String(requestedteacher._id) == String(user._id))
-                //    .text-right 
-                //        a(href='updateuserinfo')
-                //            i.fa.fa-cogs.fa-fw
                 dt Title
                 dd 
                     a(href='viewLesson?id=' + lesson._id)
@@ -19,7 +15,44 @@ block dashcontent
                     .col-md-6
                         dt Duration
                         dd #{lesson.duration_in_days} days
-                dt Preview
-                - var substring = ellipsify(lesson.lesson_plan_text)
-                dd #{substring}
-                     
+                dt Expectations
+                dd #{lesson.lesson_plan_expectations}
+                dt Actions
+                dd
+                    a.btn.btn-primary(type='button', data-toggle='modal'
+                        href='#exampleModal'
+                        data-whatever=lesson.id) Open modal for @getbootstrap
+block endMainParent
+    // Modal
+    #exampleModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='exampleModalLabel')
+        .modal-dialog(role='document')
+            .modal-content
+              .modal-header
+                button.close(type='button', data-dismiss='modal', aria-label='Close')
+                  span(aria-hidden='true') &times;
+                |             
+                h4#exampleModalLabel.modal-title Are you sure you want to delete this lesson?      
+              .modal-footer
+                .row
+                    .col-md-6
+                        button.btn.btn-default.btn-lg.btn-block(type='button', data-dismiss='modal') No
+                    .col-md-6
+                        a#confirm.btn.btn-danger.btn-lg.btn-block(type="button" href='') Yes
+                |             
+                
+        // /.modal
+    script.
+        $(function(){
+            $("#exampleModal").on("show.bs.modal", function (event) {
+                alert('Modal is successfully shown!');
+                
+                var button = $(event.relatedTarget) // Button that triggered the modal
+                var id = button.data('whatever') // Extract info from data-* attributes
+                console.log(id);
+                // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+                // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+                var modal = $(this)
+                console.log(modal.find('#confirm'));
+                modal.find('#confirm')[0].href = 'removeLesson?id=' + id;
+            })
+        })

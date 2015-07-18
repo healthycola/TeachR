@@ -712,6 +712,7 @@ router.get('/viewAllLessons', function (req, res) {
                     console.log(courseMap[lesson.course]);
                     lessonPlans[index].courseName = courseMap[lesson.course];
                 })
+                
                 console.log(lessonPlans);
                 res.render('dashboard/viewAllLessonPlans', { requestedLessonPlans: lessonPlans, teacherName: teacher.name }); //, course: 'Grade' + course.grade + course.subject }); 
             })
