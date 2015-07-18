@@ -2,16 +2,23 @@ extends layoutdash
 
 block dashcontent
     script(src='/javascripts/selectionLoad.js')
-    // script(src='//tinymce.cachefly.net/4.2/tinymce.min.js')
     script(src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js')
-    //script tinymce.init({selector:'textarea'});
+    
+    //Text Angular
+    link(rel='stylesheet' href='/stylesheets/textAngular.css')
+    script(src='/javascripts/textAngular-rangy.min.js')
+    script(src='/javascripts/textAngular-sanitize.min.js')
+    script(src='/javascripts/textAngular.min.js')
+    script(src='/javascripts/createLPFormValidate.js')
+    
     h2.page-header Create New Lesson Plan
     form(
         name='createLessonPlanForm' 
         method="post", 
         action="newlessonplan"
         novalidate 
-        ng-app)
+        ng-app="TextAngularDemo"
+        ng-controller="DemoController")
         .row
             .col-md-12
                 .form-group(
@@ -62,11 +69,21 @@ block dashcontent
                         //Valid
                         <p ng-show="createLessonPlanForm.duration.$invalid && createLessonPlanForm.duration.$dirty" class="bg-danger pad">Please enter an estimated duration.</p>
         .row
-            .col-md-8
+            .col-md-12
                 .form-group(
                     ng-class="( createLessonPlanForm.LessonPlanText.$dirty ? (createLessonPlanForm.LessonPlanText.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
                     label(for='LessonPlanText') Lesson Plan
-                    textarea#lessonText.form-control(
+                    .lessonText(
+                        text-angular 
+                        ng-model="htmlContent" 
+                        name="LessonPlanText" 
+                        ta-toolbar="[['h1', 'h2', 'h3', 'pre', 'quote', 'justifyLeft', 'justifyCenter', 'justifyRight', 'indent', 'outdent'],['bold', 'italics', 'underline', 'strikeThrough', 'ul', 'ol', 'redo', 'undo', 'clear'],['html', 'insertImage','insertLink', 'insertVideo'], ['wordcount']]"
+                        ta-toolbar-class="btn-toolbar" 
+                        ta-toolbar-group-class="btn-group" 
+                        ta-toolbar-button-class="btn btn-default" 
+                        ta-toolbar-button-active-class="active"
+                        required)
+                    //textarea#lessonText.form-control(
                         type="text"
                         name="LessonPlanText" 
                         rows='10' 
@@ -77,13 +94,13 @@ block dashcontent
                     <span ng-if="createLessonPlanForm.LessonPlanText.$invalid && createLessonPlanForm.LessonPlanText.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
                     //Valid
                     <p ng-show="createLessonPlanForm.LessonPlanText.$invalid && createLessonPlanForm.LessonPlanText.$dirty" class="bg-danger pad">Please enter some text.</p>
-                    
-            .col-md-4
+        .row
+            .col-md-12
                 .form-group(
                     ng-class="( createLessonPlanForm.expectations.$dirty ? (createLessonPlanForm.expectations.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
                     label(for='lessonExpectations') Expectations
                     textarea#lessonText.form-control(
-                        rows='10' 
+                        rows='5' 
                         name='expectations' 
                         ng-model='lessonPlan.expectations' 
                         placeholder='Expectations' 

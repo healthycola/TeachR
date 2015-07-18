@@ -1,7 +1,9 @@
-var app = angular.module('createLessonPlanForm', []);
+(function() {
+	angular
+		.module("TextAngularDemo", ['textAngular'])
+		.controller("DemoController", DemoController);
 
-app.controller('validateCtrl', ['$scope', function($scope) {
-      $scope.master = {};
-      $scope.update = function(lessonPlan) {
-      };
-    }]);
+	function DemoController($scope) {
+		
+	};
+})();

@@ -234,3 +234,16 @@ form {
 .myfriends > li:hover {
   border-bottom-color: #a8a8a8 !important;
 }
+
+.lessonText {
+  background-color: white;
+  margin-bottom:20px;
+  border-bottom: 2px solid;
+  border-bottom-color: #FF7F50 !important;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.ta-toolbar {
+  margin-bottom: 10px;
+}

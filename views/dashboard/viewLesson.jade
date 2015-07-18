@@ -16,8 +16,8 @@ block dashcontent
                 dd #{lessonPlan.parentTitle}
             dt Author 
             dd #{lessonPlan.author}
-            dt LessonPlan 
-            dd #{lessonPlan.text}
             dt Expectations 
             dd #{lessonPlan.expectations}
-            
+            dt LessonPlan 
+            dd
+                | !{lessonPlan.text}
