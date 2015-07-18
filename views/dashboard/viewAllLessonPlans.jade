@@ -1,7 +1,7 @@
 extends layoutdash
 
 block dashcontent
-    h2.page-header Lesson Plan
+    h2.page-header Lessons by #{teacherName}
     - each lesson in requestedLessonPlans
         dl.dl-horizontal
                 //- if (user && String(requestedteacher._id) == String(user._id))
@@ -12,3 +12,14 @@ block dashcontent
                 dd 
                     a(href='viewLesson?id=' + lesson._id)
                         span #{lesson.title}
+                .row
+                    .col-md-6
+                        dt Course
+                        dd #{lesson.courseName}
+                    .col-md-6
+                        dt Duration
+                        dd #{lesson.duration_in_days} days
+                dt Preview
+                - var substring = ellipsify(lesson.lesson_plan_text)
+                dd #{substring}
+                     

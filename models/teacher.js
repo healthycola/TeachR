@@ -121,7 +121,7 @@ Teacher.statics.UnfollowTeacher = function (sourceUserId, destUserId, cb) {
 }
 
 Teacher.statics.getAllLessonPlans = function(teacherID, cb) {
-  return this.findById(teacherID, 'lessonPlans', cb);
+  return this.findById(teacherID, 'name lessonPlans', cb);
 }
 
 Teacher.plugin(passportLocalMongoose);

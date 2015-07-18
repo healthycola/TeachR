@@ -42,6 +42,15 @@ app.use(function(req, res, next){
   next();
 });
 
+app.locals.ellipsify = function ellipsify (str) {
+    if (str.length > 100) {
+        return (str.substring(0, 10) + "...");
+    }
+    else {
+        return str;
+    }
+}
+
 app.use('/', routes);
 
 // passport config

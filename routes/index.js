@@ -690,8 +690,32 @@ router.get('/viewAllLessons', function (req, res) {
                 ErrorFunction(req, res, 'No lessons found', '/dashboard', err);
             }
             
-            console.log(lessonPlans);
-            res.render('dashboard/viewAllLessonPlans', { requestedLessonPlans: lessonPlans });
+            var allCourseIds = [];
+            lessonPlans.forEach(function (lesson, index) {
+                allCourseIds.push(lesson.course);
+            });
+            
+            Course.find( { _id: { $in: allCourseIds } }, function (err, courses) {
+                if (err)
+                {
+                    ErrorFunction(req, res, 'No lessons found', '/dashboard', err);
+                }   
+                
+                var courseMap = {}
+                courses.forEach(function (course, index) {
+                    courseMap[course.id] = 'Grade ' + course.grade + ' ' + course.subject;
+                })
+                
+                console.log(courseMap);
+                
+                lessonPlans.forEach(function (lesson, index) {
+                    console.log(courseMap[lesson.course]);
+                    lessonPlans[index].courseName = courseMap[lesson.course];
+                })
+                console.log(lessonPlans);
+                res.render('dashboard/viewAllLessonPlans', { requestedLessonPlans: lessonPlans, teacherName: teacher.name }); //, course: 'Grade' + course.grade + course.subject }); 
+            })
+            
         })
     })
 })
