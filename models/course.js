@@ -8,6 +8,15 @@ var Course = new Schema({
 	lessonplans: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }]
 });
 
+Course.methods.removeLesson = function(lesson, cb) {
+    var index = this.lessonplans.indexOf(lesson._id);
+    if (index >= 0)
+    {
+        this.lessonplans.splice(index, 1);
+    }
+    
+    this.save(cb);
+}
 Course.methods.addTeacher = function (teacher, cb) {
     this.teachers.push(teacher);
     this.save(cb);
@@ -49,6 +58,19 @@ Course.statics.findCourseFromString = function (stringifiedCourse, cb) {
     {
         cb("Unknown");
     }
+}
+
+Course.statics.removeLessonFromCourse = function (courseId, lesson, cb) {
+    this.findById(courseId, 'lessonplans', function(err, course) {
+        if (err)
+        {
+            cb(err);
+        }
+        else
+        {
+            course.removeLesson(lesson, cb);
+        }
+    })
 }
 
 module.exports = mongoose.model('Course', Course);

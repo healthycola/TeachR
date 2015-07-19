@@ -721,4 +721,81 @@ router.get('/viewAllLessons', function (req, res) {
     })
 })
 
+router.get('/removeLesson', function (req, res) {
+    if (!req.param('id') || req.param('id') == '')
+    {
+        ErrorFunction(req, res, 'No Lesson Specified', '/dashboard', null);
+    }
+    
+    //Get the lesson, then get the associated teacher and course. If the lesson has children, it cannot be deleted 
+    LessonPlan.findById(req.param('id'), function (err, lesson) {
+        if (lesson.children.length > 0)
+        {
+            ErrorFunction(req, res, 'This lesson has been forked. As such, it cannot be deleted. You may hide it though (wip).', '/dashboard', null);
+        }
+        
+        // Need to get the lesson, then associated course, then associated linked lesson, then associated author
+        var findTeacher = function(next) {
+            Teacher.removeLessonFromTeacherID(lesson.original_teacher, lesson, function (err){
+                if (err)
+                {
+                    ErrorFunction(req, res, 'Could not find teacher', 'dashboard', err);
+                }
+                else
+                {
+                    next();
+                }
+            })
+        }
+        
+        var findCourse = function(next) {
+            Course.removeLessonFromCourse(lesson.course, lesson, function(err) {
+                if (err)
+                {
+                    ErrorFunction(req, res, 'Could not find course', 'dashboard', err);
+                }
+                else
+                {
+                    next();
+                }
+            })
+        }
+        
+        var findLessonPlan = function(next) {
+            if (lesson.parent)
+            {
+                LessonPlan.removeChildFromParent(lesson.parent, lesson, function(err, lessonPlan) {
+                    if (err)
+                    {
+                        ErrorFunction(req, res, 'Could not find parent', 'dashboard', err);
+                    }
+                    else
+                    {
+                        next(); 
+                    }
+                })
+            }
+            else
+            {
+                next();
+            }
+        }
+        
+        var removeLesson = function () {
+            LessonPlan.remove({ _id: lesson.id }, function(err) {
+                if (err) {
+                    ErrorFunction(req, res, 'Could not remove lesson', 'dashboard', err);
+                }
+                else {
+                    req.flash('info', 'Success!');
+                    res.redirect('/viewAllLessons');
+                }
+            });
+        }
+        
+        wait([findTeacher, findCourse, findLessonPlan], removeLesson);
+    
+    })
+});
+
 module.exports = router;

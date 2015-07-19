@@ -39,6 +39,16 @@ Teacher.methods.unfollow = function(otherTeacher, cb) {
   this.save(cb);
 };
 
+Teacher.methods.removeLesson = function(lesson, cb) {
+  var index = this.lessonPlans.indexOf(lesson._id);
+  if (index >= 0)
+  {
+    this.lessonPlans.splice(index, 1);
+  }
+  
+  this.save(cb);
+}
+
 Teacher.methods.removeFollower = function(otherTeacher, cb) {
   var index = this.followers.indexOf(otherTeacher._id);
   if (index >= 0)
@@ -109,10 +119,8 @@ Teacher.statics.UnfollowTeacher = function (sourceUserId, destUserId, cb) {
                 }
                 else
                 {
-                    destUser.removeFollower(sourceUser, function (err) {
-                    cb(err);
-                }); 
-              }
+                    destUser.removeFollower(sourceUser, cb);
+                }; 
             }) 
          }
       }); 
@@ -122,6 +130,20 @@ Teacher.statics.UnfollowTeacher = function (sourceUserId, destUserId, cb) {
 
 Teacher.statics.getAllLessonPlans = function(teacherID, cb) {
   return this.findById(teacherID, 'name lessonPlans', cb);
+}
+
+Teacher.statics.removeLessonFromTeacherID = function(teacherID, lesson, cb) {
+  this.findById(teacherID, 'lessonPlans', function(err, teacher) {
+    if (err)
+    {
+      console.log('no such');
+      cb(err)
+    }
+    else
+    {
+      teacher.removeLesson(lesson, cb);
+    }
+  })
 }
 
 Teacher.plugin(passportLocalMongoose);

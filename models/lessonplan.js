@@ -19,6 +19,16 @@ LessonPlan.methods.addChild = function(childReference, cb) {
     this.save(cb);
 }
 
+LessonPlan.methods.removeChild = function(child, cb) {
+    var index = this.children.indexOf(child._id);
+    if (index >= 0)
+    {
+        this.child.splice(index, 1);
+    }
+    
+    this.save(cb);
+}
+
 LessonPlan.statics.findAllLessonsFromTeacher = function(teacher, cb) {
     return this.find({
         _id: { $in: teacher.lessonPlans }
@@ -35,6 +45,12 @@ LessonPlan.statics.findAllLessons = function (lessonIDs, cb) {
     return this.find({ 
         _id: { $in: lessonIDs}
     }, cb);
+}
+
+LessonPlan.statics.removeChildFromParent = function (parentId, childLesson, cb) {
+    this.findById(parentId, 'children', function (err, parent) {
+        parent.removeChild(childLesson, cb);
+    })
 }
 
 module.exports = mongoose.model('LessonPlan', LessonPlan);
