@@ -5,10 +5,18 @@ var Course = require('../models/course');
 var LessonPlan = require('../models/lessonplan');
 var router = express.Router();
 
-var wait = function(callbacks, done) {
+var wait = function(callbacks, done, onError) {
    var counter = callbacks.length;
-   var next = function() {
-      if(--counter == 0) {
+   var error = null;
+   var next = function(err) {
+      if (err) {
+          // There is an error in the wait functions, abort.
+          //This needs to be an abort function. (i.e. no next, and must render/redirect)
+          error = err;
+          onError(err);
+      }
+      
+      if(--counter == 0 && !error) {
          done();
       }
    };
@@ -304,11 +312,15 @@ router.post('/newlessonplan', function(req, res) {
     var lessonPlanLinked;
     var currentTeacher;
     
+    var onErrorfn = function (err) {
+        ErrorFunction(req, res, 'Creating a new lesson failed!', '/dashboard', err);
+    }
+    
     var findTeacher = function(next) {
         Teacher.findById(req.user.id, function (err, teacher){
             if (err)
             {
-                ErrorFunction(req, res, 'Could not find teacher', 'dashboard');
+                next('Could not find teacher' + err);
             }
             else
             {
@@ -322,19 +334,18 @@ router.post('/newlessonplan', function(req, res) {
         Course.findCourseFromString(req.body.course, function(err, course) {
             if (err)
             {
-                ErrorFunction(req, res, 'Could not find course', 'dashboard');
+                next('Could not find course' + err);
             }
             else
             {
-                if (course)
+                if (!course)
                 {
-                    lessonPlanCourse = course;
-                    next();
+                    next('Could not find course' + err);
                 }
                 else
                 {
-                    console.log(req.body.course);
-                    ErrorFunction(req, res, 'Could not find course', 'dashboard');   
+                   lessonPlanCourse = course;
+                    next();
                 }
             }
         })
@@ -346,7 +357,7 @@ router.post('/newlessonplan', function(req, res) {
             LessonPlan.findLessonPlanWithName(req.body.lessonLink, function(err, lessonPlan) {
                 if (err)
                 {
-                    ErrorFunction(req, res, 'Could not find linkedLesson', 'dashboard');
+                    next('Could not find linkedLesson' + err);
                 }
                 else
                 {
@@ -381,7 +392,7 @@ router.post('/newlessonplan', function(req, res) {
                 lessonPlanLinked.addChild(newLessonPlan, function (err) {
                     if (err)
                     {
-                        ErrorFunction(req, res, 'Could not find linkedLesson', '/dashboard');
+                        next('Could not find linkedLesson' + err);
                     }
                     else
                     {
@@ -399,7 +410,7 @@ router.post('/newlessonplan', function(req, res) {
             lessonPlanCourse.addLessonPlan(newLessonPlan, function(err) {
                 if (err)
                 {
-                    ErrorFunction(req, res, 'Could not add lesson to course', '/dashboard');
+                    next('Could not add lesson to course' + err)
                 }
                 else
                 {
@@ -412,8 +423,7 @@ router.post('/newlessonplan', function(req, res) {
             currentTeacher.addlessonPlan(newLessonPlan, function(err) {
                     if (err)
                     {
-                        console.log(err);
-                        ErrorFunction(req, res, 'Could not add lesson to teacher' + err, '/dashboard');
+                        onErrorfn('Could not add lesson to teacher' + err);
                     }
                     else
                     {
@@ -428,16 +438,16 @@ router.post('/newlessonplan', function(req, res) {
         newLessonPlan.save(function (err) {
             if (err)
             {
-                ErrorFunction(req, res, 'Could not save lesson' + err, '/dashboard');
+                onErrorfn('Could not save lesson' + err);
             }
             else
             {
-                wait([addLessonPlanAsChild, addLessonPlanToCourse], addLessonPlanToTeacher);
+                wait([addLessonPlanAsChild, addLessonPlanToCourse], addLessonPlanToTeacher, onErrorfn);
             }  
         })
     }
     
-    wait([findTeacher, findCourse, findLessonPlan], saveLessonPlan);
+    wait([findTeacher, findCourse, findLessonPlan], saveLessonPlan, onErrorfn);
 });
 
 router.get('/viewLesson', function (req, res) {
@@ -445,104 +455,18 @@ router.get('/viewLesson', function (req, res) {
     {
         ErrorFunction(req, res, 'No Lesson Specified', '/dashboard', null);
     }
-    
-    var teacherID;
-    var courseID;
-    var parentID = null;
-    var teacherName;
-    var courseGrade;
-    var courseSubject; 
-    var parentTitle;
-    
-    var requestedLessonPlan;
-    
-    // Need to get the lesson, then associated course, then associated linked lesson, then associated author
-    var findTeacher = function(next) {
-        console.log('Teacher: ' + teacherID);
-        Teacher.findById(teacherID, function (err, teacher){
-            if (err || !teacher)
-            {
-                ErrorFunction(req, res, 'Could not find teacher', 'dashboard', err);
-            }
-            else
-            {
-                teacherName = teacher.name;
-                next();
-            }
-        })
-    }
-    
-    var findCourse = function(next) {
-        Course.findById(courseID, function(err, course) {
-            if (err)
-            {
-                ErrorFunction(req, res, 'Could not find course', 'dashboard', err);
-            }
-            else
-            {
-                if (course)
-                {
-                    courseGrade = course.grade.toString();
-                    courseSubject = course.subject;
-                    next();
-                }
-                else
-                {
-                    ErrorFunction(req, res, 'Could not find course', 'dashboard', err);   
-                }
-            }
-        })
-    }
-    
-    var findLessonPlan = function(next) {
-        if (parentID != '')
-        {
-            LessonPlan.findById(parentID, function(err, lessonPlan) {
-                if (err)
-                {
-                    ErrorFunction(req, res, 'Could not find linkedLesson', 'dashboard', err);
-                }
-                else
-                {
-                    parentTitle = lessonPlan.title;
-                    next(); 
-                }
-            })
-        }
-        else
-        {
-            parentTitle = '';
-            next();
-        }
-    }
-    
-    var populateLessonPlanView = function() {
-        var lessonPlanViewObject = {}
-        lessonPlanViewObject.title = requestedLessonPlan.title;
-        lessonPlanViewObject.grade = courseGrade;
-        lessonPlanViewObject.subject = courseSubject;
-        lessonPlanViewObject.duration = requestedLessonPlan.duration_in_days;
-        if (parentID != '')
-        {
-            lessonPlanViewObject.parentTitle = parentTitle;
-        }
-        lessonPlanViewObject.author = teacherName;
-        lessonPlanViewObject.text = requestedLessonPlan.lesson_plan_text;
-        lessonPlanViewObject.expectations = requestedLessonPlan.lesson_plan_expectations;
-        
-        res.render('dashboard/viewLesson', {lessonPlan: lessonPlanViewObject});
-    }
-    
-        
 
+    var onErrorfn = function (err) {
+        ErrorFunction(req, res, 'Viewing this lesson failed!', '/dashboard', err);
+    }
+    
     LessonPlan.findById(req.param('id'), function(err, lessonPlan) {
         if (err)
         {
-            ErrorFunction(req, res, 'No Lesson Found', '/dashboard', err);
+            onErrorfn('No Lesson Found' + err);
         }
         else
         {
-            console.log('LP' + lessonPlan);
             requestedLessonPlan = lessonPlan;
             teacherID = lessonPlan.original_teacher;
             courseID = lessonPlan.course;
@@ -554,8 +478,95 @@ router.get('/viewLesson', function (req, res) {
             {
                 parentID = '';
             }
+                
+            var teacherID;
+            var courseID;
+            var parentID = null;
+            var teacherName;
+            var courseGrade;
+            var courseSubject; 
+            var parentTitle;
             
-            wait([findTeacher, findLessonPlan, findCourse], populateLessonPlanView);
+            var requestedLessonPlan;
+            
+            // Need to get the lesson, then associated course, then associated linked lesson, then associated author
+            var findTeacher = function(next) {
+                console.log('Teacher: ' + teacherID);
+                Teacher.findById(teacherID, function (err, teacher){
+                    if (err || !teacher)
+                    {
+                        next('Could not find teacher' + err);
+                    }
+                    else
+                    {
+                        teacherName = teacher.name;
+                        next();
+                    }
+                })
+            }
+            
+            var findCourse = function(next) {
+                Course.findById(courseID, function(err, course) {
+                    if (err)
+                    {
+                        next('Could not find course' + err);
+                    }
+                    else
+                    {
+                        if (course)
+                        {
+                            courseGrade = course.grade.toString();
+                            courseSubject = course.subject;
+                            next();
+                        }
+                        else
+                        {
+                            next('Could not find course' + err);   
+                        }
+                    }
+                })
+            }
+            
+            var findLessonPlan = function(next) {
+                if (parentID != '')
+                {
+                    LessonPlan.findById(parentID, function(err, lessonPlan) {
+                        if (err)
+                        {
+                            next('Could not find Linked Lesson' + err);
+                        }
+                        else
+                        {
+                            parentTitle = lessonPlan.title;
+                            next(); 
+                        }
+                    })
+                }
+                else
+                {
+                    parentTitle = '';
+                    next();
+                }
+            }
+            
+            var populateLessonPlanView = function() {
+                var lessonPlanViewObject = {}
+                lessonPlanViewObject.title = requestedLessonPlan.title;
+                lessonPlanViewObject.grade = courseGrade;
+                lessonPlanViewObject.subject = courseSubject;
+                lessonPlanViewObject.duration = requestedLessonPlan.duration_in_days;
+                if (parentID != '')
+                {
+                    lessonPlanViewObject.parentTitle = parentTitle;
+                }
+                lessonPlanViewObject.author = teacherName;
+                lessonPlanViewObject.text = requestedLessonPlan.lesson_plan_text;
+                lessonPlanViewObject.expectations = requestedLessonPlan.lesson_plan_expectations;
+                
+                res.render('dashboard/viewLesson', {lessonPlan: lessonPlanViewObject});
+            }
+            
+            wait([findTeacher, findLessonPlan, findCourse], populateLessonPlanView, onErrorfn);
         }
     })
 })
@@ -731,9 +742,14 @@ router.post('/removeLesson', function (req, res) {
     
     //Get the lesson, then get the associated teacher and course. If the lesson has children, it cannot be deleted 
     LessonPlan.findById(req.body.lessonID, function (err, lesson) {
-        if (!lesson) {
-            console.log(req.body.lessonID);
-            ErrorFunction(req, res, 'No lesson found', '/dashboard', null);
+        if (err)
+        {
+            ErrorFunction(req, res, 'No lesson found', '/dashboard', err);
+        }
+        
+        if (!lesson) 
+        {
+            ErrorFunction(req, res, 'No lesson found', '/dashboard', 'ID: ' + req.body.lessonID);
         }
         
         if (lesson.children.length > 0)
@@ -741,12 +757,16 @@ router.post('/removeLesson', function (req, res) {
             ErrorFunction(req, res, 'This lesson has been forked. As such, it cannot be deleted. You may hide it though (wip).', '/dashboard', null);
         }
         
+        var onErrorfn = function (err) {
+            ErrorFunction(req, res, 'Removing this lesson failed!', '/dashboard', err);
+        }
+    
         // Need to get the lesson, then associated course, then associated linked lesson, then associated author
         var findTeacher = function(next) {
             Teacher.removeLessonFromTeacherID(lesson.original_teacher, lesson, function (err){
                 if (err)
                 {
-                    ErrorFunction(req, res, 'Could not find teacher', 'dashboard', err);
+                    next('Could not find teacher' + err);
                 }
                 else
                 {
@@ -759,7 +779,7 @@ router.post('/removeLesson', function (req, res) {
             Course.removeLessonFromCourse(lesson.course, lesson, function(err) {
                 if (err)
                 {
-                    ErrorFunction(req, res, 'Could not find course', 'dashboard', err);
+                    next('Could not find course' + err);
                 }
                 else
                 {
@@ -774,7 +794,7 @@ router.post('/removeLesson', function (req, res) {
                 LessonPlan.removeChildFromParent(lesson.parent, lesson, function(err, lessonPlan) {
                     if (err)
                     {
-                        ErrorFunction(req, res, 'Could not find parent', 'dashboard', err);
+                        next('Could not find parent' + err);
                     }
                     else
                     {
@@ -791,7 +811,7 @@ router.post('/removeLesson', function (req, res) {
         var removeLesson = function () {
             LessonPlan.remove({ _id: lesson.id }, function(err) {
                 if (err) {
-                    ErrorFunction(req, res, 'Could not remove lesson', 'dashboard', err);
+                    onErrorfn('Could not remove lesson' + err);
                 }
                 else {
                     req.flash('info', 'Success!');
@@ -800,7 +820,7 @@ router.post('/removeLesson', function (req, res) {
             });
         }
         
-        wait([findTeacher, findCourse, findLessonPlan], removeLesson);
+        wait([findTeacher, findCourse, findLessonPlan], removeLesson, onErrorfn);
     
     })
 });

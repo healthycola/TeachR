@@ -1,10 +1,18 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
+
+/*
+
+Current -> Parent -> OriginalParent
+
+*/
+
 var LessonPlan = new Schema({
     title: String,
 	course: { type: Schema.Types.ObjectId, ref: 'Course' },
 	parent: { type: Schema.Types.ObjectId, ref: 'LessonPlan' },
+    original_parent: { type: Schema.Types.ObjectId, ref: 'LessonPlan' },
 	children: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }],
 	original_teacher: { type: Schema.Types.ObjectId, ref: 'Teacher' },
 	duration_in_days: Number,
