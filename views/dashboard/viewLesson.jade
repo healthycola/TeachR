@@ -11,6 +11,9 @@ block dashcontent
             dd #{lessonPlan.title}
             dt Course
             dd Grade #{lessonPlan.grade} #{lessonPlan.subject}
+            dt Duration
+            - var dayText = (lessonPlan.duration > 1) ? 'days' : (lessonPlan.duration == 1) ? 'day' : 'a day';
+            dd #{lessonPlan.duration} #{dayText}
             - if (lessonPlan.parent)
                 dt Parent Lesson
                 dd #{lessonPlan.parentTitle}

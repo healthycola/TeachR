@@ -48,9 +48,19 @@ Course.statics.findCourseFromString = function (stringifiedCourse, cb) {
     // if the format is "Grade 1 Math"
     else if (tokens[0].toLowerCase() == 'grade' && !isNaN(tokens[1]))
     {
+        //concatenate all strings after token[2]
+        var subject = '';
+        for (var i = 2; i < tokens.length - 1; ++i)
+        {
+            subject += tokens[i] + ' ';
+        }
+        
+        subject += tokens[tokens.length - 1];
+        
+        console.log(subject);
         return this.findOne({
             grade: parseInt(tokens[1], 10),
-            subject: tokens[2]
+            subject: subject
         }, cb);
     }
     

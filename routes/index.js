@@ -333,6 +333,7 @@ router.post('/newlessonplan', function(req, res) {
                 }
                 else
                 {
+                    console.log(req.body.course);
                     ErrorFunction(req, res, 'Could not find course', 'dashboard');   
                 }
             }
@@ -520,6 +521,7 @@ router.get('/viewLesson', function (req, res) {
         lessonPlanViewObject.title = requestedLessonPlan.title;
         lessonPlanViewObject.grade = courseGrade;
         lessonPlanViewObject.subject = courseSubject;
+        lessonPlanViewObject.duration = requestedLessonPlan.duration_in_days;
         if (parentID != '')
         {
             lessonPlanViewObject.parentTitle = parentTitle;
