@@ -5,6 +5,7 @@ var Course = require('../models/course');
 var LessonPlan = require('../models/lessonplan');
 var router = express.Router();
 
+// Global functions
 var wait = function(callbacks, done, onError) {
    var counter = callbacks.length;
    var error = null;
@@ -24,22 +25,26 @@ var wait = function(callbacks, done, onError) {
    for(var i = 0; i < callbacks.length; i++) {
       callbacks[i](next);
    }
-   
 }
 
-/* GET home page. */
+function ErrorFunction(req, res, flashMessage, redirectPath, err)
+{
+    if (!err)
+    {
+        console.log(flashMessage);
+    }
+    else
+    {
+        console.log(flashMessage)
+        console.log(err);
+    }
+    
+    req.flash('info', flashMessage);
+    res.redirect(redirectPath);
+} 
+
 router.get('/', function(req, res) {
   res.render('index', { title: 'TeachR!', message: req.flash('info')  });
-});
-
-
-router.get('/helloworld', function(req, res) {
-  res.render('helloworld', { title: 'Hello World!', message: req.flash('info')  });
-});
-
-/* GET Userlist page. */
-router.get('/userlist', function(req, res) {
-    
 });
 
 router.get('/register', function(req, res) {
@@ -59,11 +64,7 @@ router.post('/register', function(req, res) {
         req.body.password,
         function(err, teacher) {
             if (err) {
-                console.log(err);
-                return res.render('user/register', 
-                                  { teacher: teacher,
-                                    registerFail: err }
-                                  );
+                ErrorFunction(req, res, "Cannot register :(, We're working on it.", '/register', err);
             }
             
             // Log the user in
@@ -97,33 +98,49 @@ router.get('/myfriends', function(req,res) {
             res.render('user/myfriends', { message: req.flash('info') });
         }
         else {
-            Teacher.find({ 
+            var onErrorfn = function (err) {
+                ErrorFunction(req, res, 'Cannot find your friends' + err, '/userinfo?id=' + req.user._id.toHexString(), err);
+            }
+            
+            var _following;
+            var _followers;
+            var findFollowings = function(next) {
+                Teacher.find({ 
                     _id: { $in: teacher.following}
                 }, function (err, following) {
                     if (err)
                     {
-                        //Flash
-                        console.log('Unable to find followed teachers');
-                        req.flash('info', 'Unable to find followed teachers');
-                        res.render('user/myfriends', { message: req.flash('info') } );
+                        next("Couldn't find any of your following" + err);
                     }
-                    else {
-                        Teacher.find({ 
-                            _id: { $in: teacher.followers}
-                        }, function (err, followers) {
-                            if (err)
-                            {
-                                //Flash
-                                console.log('Unable to find following teachers')
-                                req.flash('info', 'Unable to find following teachers');
-                                res.render('user/myfriends', { message: req.flash('info') });
-                            }
-                            else {
-                                res.render('user/myfriends', { message: req.flash('info') , myfollowers: followers, myfollowing: following });
-                            } 
-                        });
-                    } 
+                    else
+                    {
+                        _following = following;
+                        next();
+                    }
                 });
+            }
+            
+            var findFollowers = function(next) {
+                Teacher.find({ 
+                    _id: { $in: teacher.followers}
+                }, function (err, followers) {
+                    if (err)
+                    {
+                        next("Couldn't find any of your followers" + err)
+                    }
+                    else
+                    {
+                        _followers = followers;
+                        next();
+                    }
+                });
+            }
+            
+            var viewPage = function () {
+                res.render('user/myfriends', { message: req.flash('info') , myfollowers: _followers, myfollowing: _following });
+            }
+            
+            wait([findFollowers, findFollowings], viewPage, onErrorfn);
         }
     });
 });
@@ -141,36 +158,32 @@ router.get('/userinfo', function(req,res) {
             res.render('/');
         }
         else {
-            Course.findAllCoursesFromTeacher(teacher, function (err, courses) {
+            var onErrorfn = function (err) {
+                ErrorFunction(req, res, 'Could not find user. Did you log in?' + err, '/', err);
+            }
+            
+            var _courses;
+            var findCoursesFromTeacher = function(next) {
+                Course.findAllCoursesFromTeacher(teacher, function (err, courses) {
                     if (err)
                     {
-                        //Flash
-                        req.flash('info', 'Unable to find courses for this teacher');
-                        res.render('user/userinfo', {requestedteacher: teacher});
+                        next(err);
                     }
                     else {
-                        res.render('user/userinfo', { requestedteacher: teacher, teachercourses: courses });
-                    } 
+                        _courses = courses;
+                        next();
+                    }
                 });
+            }
+            
+            var viewPage = function() {
+                res.render('user/userinfo', { requestedteacher: teacher, teachercourses: _courses });
+            }
+            
+            wait([findCoursesFromTeacher], viewPage, onErrorfn);
         }
     });
 });
-
-function ErrorFunction(req, res, flashMessage, redirectPath, err)
-{
-    if (!err)
-    {
-        console.log(flashMessage);
-    }
-    else
-    {
-        console.log(flashMessage)
-        console.log(err);
-    }
-    
-    req.flash('info', flashMessage);
-    res.redirect(redirectPath);
-} 
 
 router.get('/follow', function(req,res) {
     if (!req.param('id') || req.param('id') == '')
@@ -185,7 +198,6 @@ router.get('/follow', function(req,res) {
         }
         else
         {
-            console.log('Success');
             req.flash('info', 'Success!');
             res.redirect('myfriends');
         }
@@ -206,7 +218,6 @@ router.get('/unfollow', function(req,res) {
         }
         else
         {
-            console.log('Success');
             req.flash('info', 'Success!');
             res.redirect('myfriends');
         }
@@ -229,10 +240,7 @@ router.post('/updateuserinfo', function(req,res) {
         Teacher.findById(req.user.id, function (err, teacher){
             if (err)
             {
-                res.render('updateuserinfo', {
-                    message: '',
-                    errors: err
-                });
+                ErrorFunction(req, res, "Could not update user", '/updateuserinfo', err);
             }
             
             teacher.name = _name;
@@ -260,49 +268,62 @@ router.get('/newentry', function(req, res) {
             console.log('Finding user failed');
         }
         else {
-            Course.findAllCoursesFromTeacher(teacher, function (err, courses) {
+            var onErrorfn = function (err) {
+                ErrorFunction(req, res, 'Creating a new lesson failed!', '/dashboard', err);
+            }
+            
+            var _courses;
+            var _courseLessonMap;
+            var findAllCourses = function (next) {
+                Course.findAllCoursesFromTeacher(teacher, function (err, courses) {
                     if (err)
                     {
-                        //Flash
-                        console.log('Finding courses failed');
+                        next('Finding courses failed' + err);
                     }
                     else {
                         if (courses.length < 1)
                         {
-                            req.flash('info', 'Please enrol in a class before trying to create a lesson plan.');
-                            res.redirect('dashboard');
+                            next('No courses enrolled!');
                         }
                         else
                         {
-                            //res.render('dashboard/createlp', { message: req.flash('info'), usercourses: courses });
-                            
-                            LessonPlan.findAllLessonsFromTeacher(teacher, function (err, lessonPlans) {
-                                if (err)
-                                {
-                                    req.flash('info', 'Error looking for lessons');
-                                    res.redirect('dashboard');
-                                }
-                                else
-                                {
-                                    var courseLessonMap = {};
-                                    lessonPlans.forEach(function(element) {
-                                        if (!(element.course in courseLessonMap))
-                                        {
-                                            courseLessonMap[element.course] = [];
-                                        }
-                                        courseLessonMap[element.course].push(element);
-                                    }, this);
-                                    
-                                    console.log(courseLessonMap);
-                                    
-                                    res.render('dashboard/createlp', { message: req.flash('info'), 
-                                        usercourses: courses, 
-                                        courseLessonPlan: courseLessonMap });
-                                }
-                            });
+                            _courses = courses;
+                            next();
                         }
-                    } 
+                    }
                 });
+            }
+            
+            var findAllLessonsFromTeacher = function (next) {
+                LessonPlan.findAllLessonsFromTeacher(teacher, function (err, lessonPlans) {
+                    if (err || !lessonPlans)
+                    {
+                        next('Error looking for lessons by this teacher' + err);
+                    }
+                    else
+                    {
+                        var courseLessonMap = {};
+                        lessonPlans.forEach(function(element) {
+                            if (!(element.course in courseLessonMap))
+                            {
+                                courseLessonMap[element.course] = [];
+                            }
+                            courseLessonMap[element.course].push(element);
+                        }, this);
+                        
+                        _courseLessonMap = courseLessonMap;
+                        next();
+                    }
+                });
+            }
+            
+            var viewPage = function () {
+                res.render('dashboard/createlp', { message: req.flash('info'), 
+                    usercourses: _courses, 
+                    courseLessonPlan: _courseLessonMap });
+            }
+            
+            wait([findAllCourses, findAllLessonsFromTeacher], viewPage, onErrorfn);
         }
     });
 });
@@ -528,7 +549,7 @@ router.get('/viewLesson', function (req, res) {
             }
             
             var findLessonPlan = function(next) {
-                if (parentID != '')
+                if (parentID && parentID != '')
                 {
                     LessonPlan.findById(parentID, function(err, lessonPlan) {
                         if (err)
