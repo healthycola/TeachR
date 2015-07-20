@@ -2,7 +2,7 @@ extends ../layout
 
 block content
     script(src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js')
-    form#formAddUser.form-register(name="login",method="post",action="/login" ng-app)
+    form#formAddUser.themed.form-register(name="login",method="post",action="/login" ng-app)
         h2.page-header Login
         .form-group(
                 ng-class="( login.username.$dirty ? (login.username.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")

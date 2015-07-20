@@ -4,7 +4,7 @@ block dashcontent
         p
         .row
                 .col-md-8
-                        form#formAddCourse.form-newCourse(name="newcourse",method="post",action="/createcourse")
+                        form#formAddCourse.themed.form-newCourse(name="newcourse",method="post",action="/createcourse")
                                 h3.page-header Enroll in a new course
                                 label.form-group-lg(for='courseGrade') Grade
                                 - var courseNumber = 1
@@ -19,7 +19,7 @@ block dashcontent
                                 button.btn.btn-lg.btn-primary.btn-block(type="submit") Add Course
                 .col-md-4
                         if (teachercourses && teachercourses.length > 0)
-                                form#formAddCourse.form-newCourse(name="removecourse",method="post",action="/removecourse")
+                                form#formAddCourse.themed.form-newCourse(name="removecourse",method="post",action="/removecourse")
                                         h3.page-header Remove a course
                                         label.form-group-lg(for='Course') Course
                                         select#courseGrade.form-control.input-sm(name="courseGrade")

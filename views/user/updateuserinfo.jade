@@ -2,7 +2,7 @@ extends ../layout
 
 block content
     - if (user)
-        form#formAddUser.form-register(name="adduser",method="post",action="updateuserinfo")
+        form#formAddUser.themed.form-register(name="adduser",method="post",action="updateuserinfo")
             h2.page-header Update information
             label(for='inputName') Name
             input#inputName.form-control(type="text", placeholder="#{user.name}", name="name")

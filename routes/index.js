@@ -721,14 +721,19 @@ router.get('/viewAllLessons', function (req, res) {
     })
 })
 
-router.get('/removeLesson', function (req, res) {
-    if (!req.param('id') || req.param('id') == '')
+router.post('/removeLesson', function (req, res) {
+    if (!req.body.lessonID || req.body.lessonID == '')
     {
-        ErrorFunction(req, res, 'No Lesson Specified', '/dashboard', null);
+        ErrorFunction(req, res, 'No Lesson to remove', '/dashboard', null);
     }
     
     //Get the lesson, then get the associated teacher and course. If the lesson has children, it cannot be deleted 
-    LessonPlan.findById(req.param('id'), function (err, lesson) {
+    LessonPlan.findById(req.body.lessonID, function (err, lesson) {
+        if (!lesson) {
+            console.log(req.body.lessonID);
+            ErrorFunction(req, res, 'No lesson found', '/dashboard', null);
+        }
+        
         if (lesson.children.length > 0)
         {
             ErrorFunction(req, res, 'This lesson has been forked. As such, it cannot be deleted. You may hide it though (wip).', '/dashboard', null);

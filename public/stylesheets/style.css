@@ -214,6 +214,9 @@ body {
 }
 
 form {
+}
+
+.themed {
   background-color: white;
   padding: 20px;
   margin-bottom:20px;
@@ -221,8 +224,7 @@ form {
   border-bottom-color: #FF7F50 !important;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
-}
-
+} 
 
 .myfriends > li {
   border-bottom: 1px solid;
@@ -242,6 +244,15 @@ form {
   border-bottom-color: #FF7F50 !important;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
+}
+
+.noHeight {
+  height: 0px;
+  margin-bottom: 0px;
+}
+
+.largeButtonTopMarginReduction {
+  margin-top: -22px;
 }
 
 .ta-toolbar {
