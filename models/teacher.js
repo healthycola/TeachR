@@ -20,23 +20,52 @@ Teacher.methods.addlessonPlan = function(lessonPlan, cb) {
 }
 
 Teacher.methods.follow = function(otherTeacher, cb) {
-  this.following.push(otherTeacher);
-  this.save(cb);
+  var index = this.following.indexOf(otherTeacher._id);
+  if (index < 0)
+  {
+    this.following.push(otherTeacher);
+    this.save(cb); 
+  }
+  else
+  {
+    cb(null);
+  }
 };
 
 Teacher.methods.addFollower = function(otherTeacher, cb) {
-  this.followers.push(otherTeacher);
-  this.save(cb);
+  var index = this.followers.indexOf(otherTeacher._id);
+  if (index < 0)
+  {
+    this.followers.push(otherTeacher);
+    this.save(cb); 
+  }
+  else
+  {
+    cb(null);
+  }
 };
 
 Teacher.methods.unfollow = function(otherTeacher, cb) {
+  console.log(otherTeacher);
+  console.log(this);
   var index = this.following.indexOf(otherTeacher._id);
-  if (index >= 0)
+  var removed = false;
+  while (index >= 0)
   {
     this.following.splice(index, 1);
+    
+    index = this.following.indexOf(otherTeacher._id);
+    removed = true;
   }
   
-  this.save(cb);
+  if (removed)
+  {
+    this.save(cb);
+  }
+  else
+  {
+    cb(null); 
+  }
 };
 
 Teacher.methods.removeLesson = function(lesson, cb) {
@@ -51,10 +80,22 @@ Teacher.methods.removeLesson = function(lesson, cb) {
 
 Teacher.methods.removeFollower = function(otherTeacher, cb) {
   var index = this.followers.indexOf(otherTeacher._id);
-  if (index >= 0)
+  var removed = false;
+  while (index >= 0)
   {
     this.followers.splice(index, 1);
+    
+    index = this.followers.indexOf(otherTeacher._id);
+    removed = true;
+  }
+  
+  if (removed)
+  {
     this.save(cb);
+  }
+  else
+  {
+    cb(null); 
   }
 };
 
@@ -101,6 +142,7 @@ Teacher.statics.UnfollowTeacher = function (sourceUserId, destUserId, cb) {
   thisSceme.findOne({ _id: sourceUserId }, function(err, sourceUser) {
     if (err)
     {
+      console.log('1' + err)
       cb(err);
     }
     else
@@ -108,6 +150,7 @@ Teacher.statics.UnfollowTeacher = function (sourceUserId, destUserId, cb) {
        thisSceme.findOne({ _id: destUserId }, function(err, destUser) {
          if (err)
          {
+           console.log('2' + err)
            cb(err);
          }
          else
@@ -115,10 +158,13 @@ Teacher.statics.UnfollowTeacher = function (sourceUserId, destUserId, cb) {
              sourceUser.unfollow(destUser, function (err) {
                 if (err)
                 {
+                  console.log('3' + err)
                   cb(err);
                 }
                 else
                 {
+                  console.log('4' + err)
+                    console.log()
                     destUser.removeFollower(sourceUser, cb);
                 }; 
             }) 

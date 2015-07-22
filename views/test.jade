@@ -1,0 +1,33 @@
+extends layout
+
+block additionalHeader
+    script(src='/javascripts/jsdiff.js')
+    
+block content
+    span#first Hello my name is Aamir. I am really cool. how are you?
+    p
+    span#second Hello my name is Bushra. It's all good!
+    p
+    span#firstRes
+    p
+    span#secondRes
+    
+    script.
+        function doStuff() {
+            var first = document.getElementById ("first");
+            var second = document.getElementById ("second");
+            var firstRes = document.getElementById ("firstRes");
+            var secondRes = document.getElementById ("secondRes");
+            
+            var firstText = first.innerHTML;
+            var secondText = second.innerHTML;
+            console.log(firstText);
+            console.log(secondText);
+            
+            var output = diffString2(firstText, secondText);
+            
+            firstRes.innerHTML = output.n;
+            secondRes.innerHTML = output.o;
+        }
+        
+        window.onload = doStuff;

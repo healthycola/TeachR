@@ -14,7 +14,7 @@ block dashcontent
                         dd #{lesson.courseName}
                     .col-md-6
                         dt Duration
-                        - var dayText = (lesson.duration_in_days > 1) ? 'days' : (lesson.duration_in_days == 1) ? 'day' : 'a day'; 
+                        - var dayText = (lesson.duration_in_days > 1) ? 'days' : (lesson.duration_in_days == 1) ? 'day' : 'of a day'; 
                         dd #{lesson.duration_in_days} #{dayText}
                 dt Expectations
                 dd #{lesson.lesson_plan_expectations}
