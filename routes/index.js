@@ -82,8 +82,9 @@ router.get('/login', function(req, res) {
 router.post('/login', 
     passport.authenticate('local', 
         { failureRedirect: '/login', failureFlash: true }), function (req, res) {
-    res.redirect('userinfo?id=' + req.user._id.toHexString());
-});
+            res.redirect('userinfo?id=' + req.user._id.toHexString());
+            }
+);
 
 router.get('/logout', function(req, res) {
     req.logout();
@@ -207,14 +208,13 @@ router.get('/follow', function(req,res) {
 router.get('/unfollow', function(req,res) {
     if (!req.param('id') || req.param('id') == '')
     {
-        req.flash('info', 'No User Specified');
-        res.render('/');
+        ErrorFunction(req, res, 'No user specified');
     }
     
     Teacher.UnfollowTeacher(req.user.id, req.param("id"), function(sourceUser, destUser, err){
         if (err)
         {
-            ErrorFunction(req, res, 'Unfollowing this teacher failed', 'myfriends');
+            ErrorFunction(req, res, 'Unfollowing this teacher failed', 'myfriends', err);
         }
         else
         {
@@ -845,5 +845,9 @@ router.post('/removeLesson', function (req, res) {
     
     })
 });
+
+router.get('/test', function (req, res) {
+    res.render('test');
+})
 
 module.exports = router;
