@@ -712,7 +712,12 @@ router.post('/createcourse', function(req, res) {
 });
 
 router.get('/viewAllLessons', function (req, res) {
-    Teacher.getAllLessonPlans(req.user.id, function(err, teacher) {
+    if (!req.param('id') || req.param('id') == '')
+    {
+        ErrorFunction(req, res, 'No user Specified', '/dashboard', null);
+    }
+    
+    Teacher.getAllLessonPlans(req.param('id'), function(err, teacher) {
         if (err)
         {
             ErrorFunction(req, res, 'No user found', '/dashboard', err);

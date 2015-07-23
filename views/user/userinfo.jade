@@ -17,6 +17,9 @@ block content
             dd #{requestedteacher.email}
             dt Username 
             dd #{requestedteacher.username}
+            dt Lessons
+            dd
+                a(href='viewAllLessons?id=' + requestedteacher.id) View All lessons
             - if (teachercourses && teachercourses.length > 0)
                 dt Courses
                 dd
@@ -31,7 +34,7 @@ block content
                             li #{requestedteacher.name} follows you!
                         if (user.following.indexOf(requestedteacher._id) >= 0)
                             li
-                                a(href='unfollow?id=' + String(requestedteacher._id)) Unfollow
+                                a(href='unfollow?id=' + String(requestedteacher.id)) Unfollow
                         else
                             li
-                                a(href='follow?id=' + String(requestedteacher._id)) Follow this Teacher!
+                                a(href='follow?id=' + String(requestedteacher.id)) Follow this Teacher!

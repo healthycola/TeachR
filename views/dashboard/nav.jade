@@ -1,10 +1,11 @@
 nav
     ul.nav.nav-justified.nav-submenu
-        - var objUser = { 'newcourse':'Enroll in a new class', 'newentry':'New Lesson Plan', 'viewAllLessons':'View My Lesson Plans', 'organizer': 'Organizer' }
-            - each val, key in objUser
-                -if (id == key)
-                    li.active
-                        a(href='#{key}') #{val}
-                -else
-                    li
-                        a(href='#{key}') #{val}
+        - var objUser = { 'newcourse':'Enroll in a new class', 'newentry':'New Lesson Plan', 'viewAllLessons?id=':'View My Lesson Plans', 'organizer': 'Organizer' }
+        li
+            a(href='newcourse') Enroll in a New Class
+        li
+            a(href='newentry') New Lesson Plan
+        li
+            a(href='viewAllLessons?id=' + user.id) View All My Lessons
+        li
+            a(href='organizer') Organizer
