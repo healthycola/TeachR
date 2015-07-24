@@ -20,11 +20,11 @@ block content
             dt Lessons
             dd
                 a(href='viewAllLessons?id=' + requestedteacher.id) View All lessons
-            - if (teachercourses && teachercourses.length > 0)
+            - if (requestedteacher.courses.length > 0)
                 dt Courses
                 dd
                     ul.list-unstyled
-                     - each course in teachercourses
+                     - each course in requestedteacher.courses
                         li Grade #{course.grade} #{course.subject}
             - if (user && String(requestedteacher._id) != String(user._id))
                 dt Friendship

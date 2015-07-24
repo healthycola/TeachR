@@ -12,7 +12,7 @@ block dashcontent
                     .row
                         .col-md-6
                             dt Course
-                            dd #{lesson.courseName}
+                            dd #{lesson.course.grade} #{lesson.course.subject}
                         .col-md-6
                             dt Duration
                             - var dayText = (lesson.duration_in_days > 1) ? 'days' : (lesson.duration_in_days == 1) ? 'day' : 'of a day'; 

@@ -104,7 +104,8 @@ function diffString2( o, n ) {
 
   var out = diff(o == "" ? [] : o.split(/\s+/), n == "" ? [] : n.split(/\s+/) );
 
-  var oSpace = o.match(/\s+/g);
+  var
+   oSpace = o.match(/\s+/g);
   if (oSpace == null) {
     oSpace = ["\n"];
   } else {

@@ -22,7 +22,7 @@ block dashcontent
                                 form#formAddCourse.themed.form-newCourse(name="removecourse",method="post",action="/removecourse")
                                         h3.page-header Remove a course
                                         label.form-group-lg(for='Course') Course
-                                        select#courseGrade.form-control.input-sm(name="courseGrade")
+                                        select#courseGrade.form-control.input-sm(name="course")
                                                 - each course in teachercourses
                                                         option #{course.grade} #{course.subject}
                                         p

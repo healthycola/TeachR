@@ -9,7 +9,7 @@ var Teacher = new Schema({
     username: String,
     password: String,
     lessonPlans: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }],
-    courses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
+    courses: [{ grade: Number, subject: String }],
     following: [{ type: Schema.Types.ObjectId, ref: 'Teacher' }],
     followers: [{ type: Schema.Types.ObjectId, ref: 'Teacher' }]
 });

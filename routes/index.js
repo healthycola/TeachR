@@ -1,7 +1,6 @@
 var express = require('express');
 var passport = require('passport');
 var Teacher = require('../models/teacher');
-var Course = require('../models/course');
 var LessonPlan = require('../models/lessonplan');
 var router = express.Router();
 
@@ -25,6 +24,56 @@ var wait = function(callbacks, done, onError) {
    for(var i = 0; i < callbacks.length; i++) {
       callbacks[i](next);
    }
+}
+
+function findCourseIndex(courseArray, grade, subject)
+{
+    var courseIndex = -1;
+    courseArray.map(function(obj, index) {
+        if (obj.grade == grade && obj.subject.toLowerCase() == subject.toLowerCase())
+        {
+            courseIndex = index;
+        }
+    })
+    
+    return courseIndex;
+}
+
+function findCourseFromString(stringifiedCourse) {
+    var tokens = stringifiedCourse.split(' ');
+    
+    // if the format is "1 Math"
+    if (!isNaN(tokens[0]))
+    {
+        return {
+            grade: parseInt(tokens[0], 10),
+            subject: tokens[1]
+        };
+    }
+    
+    // if the format is "Grade 1 Math"
+    else if (tokens[0].toLowerCase() == 'grade' && !isNaN(tokens[1]))
+    {
+        //concatenate all strings after token[2]
+        var subject = '';
+        for (var i = 2; i < tokens.length - 1; ++i)
+        {
+            subject += tokens[i] + ' ';
+        }
+        
+        subject += tokens[tokens.length - 1];
+        
+        console.log(subject);
+        return {
+            grade: parseInt(tokens[1], 10),
+            subject: subject
+        };
+    }
+    
+    else 
+    {
+        return null;
+    }
 }
 
 function ErrorFunction(req, res, flashMessage, redirectPath, err)
@@ -159,29 +208,7 @@ router.get('/userinfo', function(req,res) {
             res.render('/');
         }
         else {
-            var onErrorfn = function (err) {
-                ErrorFunction(req, res, 'Could not find user. Did you log in?' + err, '/', err);
-            }
-            
-            var _courses;
-            var findCoursesFromTeacher = function(next) {
-                Course.findAllCoursesFromTeacher(teacher, function (err, courses) {
-                    if (err)
-                    {
-                        next(err);
-                    }
-                    else {
-                        _courses = courses;
-                        next();
-                    }
-                });
-            }
-            
-            var viewPage = function() {
-                res.render('user/userinfo', { requestedteacher: teacher, teachercourses: _courses });
-            }
-            
-            wait([findCoursesFromTeacher], viewPage, onErrorfn);
+            res.render('user/userinfo', { requestedteacher: teacher });
         }
     });
 });
@@ -272,27 +299,7 @@ router.get('/newentry', function(req, res) {
                 ErrorFunction(req, res, 'Creating a new lesson failed!', '/dashboard', err);
             }
             
-            var _courses;
             var _courseLessonMap;
-            var findAllCourses = function (next) {
-                Course.findAllCoursesFromTeacher(teacher, function (err, courses) {
-                    if (err)
-                    {
-                        next('Finding courses failed' + err);
-                    }
-                    else {
-                        if (courses.length < 1)
-                        {
-                            next('No courses enrolled!');
-                        }
-                        else
-                        {
-                            _courses = courses;
-                            next();
-                        }
-                    }
-                });
-            }
             
             var findAllLessonsFromTeacher = function (next) {
                 LessonPlan.findAllLessonsFromTeacher(teacher, function (err, lessonPlans) {
@@ -319,17 +326,16 @@ router.get('/newentry', function(req, res) {
             
             var viewPage = function () {
                 res.render('dashboard/createlp', { message: req.flash('info'), 
-                    usercourses: _courses, 
+                    usercourses: teacher.courses, 
                     courseLessonPlan: _courseLessonMap });
             }
             
-            wait([findAllCourses, findAllLessonsFromTeacher], viewPage, onErrorfn);
+            wait([findAllLessonsFromTeacher], viewPage, onErrorfn);
         }
     });
 });
 
 router.post('/newlessonplan', function(req, res) {
-    var lessonPlanCourse;
     var lessonPlanLinked;
     var currentTeacher;
     
@@ -347,27 +353,6 @@ router.post('/newlessonplan', function(req, res) {
             {
                 currentTeacher = teacher;
                 next();
-            }
-        })
-    }
-    
-    var findCourse = function(next) {
-        Course.findCourseFromString(req.body.course, function(err, course) {
-            if (err)
-            {
-                next('Could not find course' + err);
-            }
-            else
-            {
-                if (!course)
-                {
-                    next('Could not find course' + err);
-                }
-                else
-                {
-                   lessonPlanCourse = course;
-                    next();
-                }
             }
         })
     }
@@ -394,10 +379,16 @@ router.post('/newlessonplan', function(req, res) {
         }
     }
     
-    var saveLessonPlan = function () {    
+    var saveLessonPlan = function () {  
+        var lessonPlanCourse = findCourseFromString(req.body.course);
+        if (!lessonPlanCourse)
+        {
+            onErrorfn("Unable to find course linked to this lesson");
+        }
+        
         var newLessonPlan = new LessonPlan ({
             title: req.body.title,
-            course: lessonPlanCourse.id,
+            course: lessonPlanCourse,
             parent: lessonPlanLinked,
             original_teacher: currentTeacher.id,
             duration_in_days: req.body.duration,
@@ -427,19 +418,6 @@ router.post('/newlessonplan', function(req, res) {
             }
         }
         
-        var addLessonPlanToCourse = function(next) {
-            lessonPlanCourse.addLessonPlan(newLessonPlan, function(err) {
-                if (err)
-                {
-                    next('Could not add lesson to course' + err)
-                }
-                else
-                {
-                    next();
-                }
-            });
-        }
-        
         var addLessonPlanToTeacher = function() {
             currentTeacher.addlessonPlan(newLessonPlan, function(err) {
                     if (err)
@@ -463,12 +441,12 @@ router.post('/newlessonplan', function(req, res) {
             }
             else
             {
-                wait([addLessonPlanAsChild, addLessonPlanToCourse], addLessonPlanToTeacher, onErrorfn);
+                wait([addLessonPlanAsChild], addLessonPlanToTeacher, onErrorfn);
             }  
         })
     }
     
-    wait([findTeacher, findCourse, findLessonPlan], saveLessonPlan, onErrorfn);
+    wait([findTeacher, findLessonPlan], saveLessonPlan, onErrorfn);
 });
 
 router.get('/viewLesson', function (req, res) {
@@ -490,7 +468,6 @@ router.get('/viewLesson', function (req, res) {
         {
             requestedLessonPlan = lessonPlan;
             teacherID = lessonPlan.original_teacher;
-            courseID = lessonPlan.course;
             if (lessonPlan.parent != null)
             {
                 parentID = lessonPlan.parent;
@@ -501,11 +478,8 @@ router.get('/viewLesson', function (req, res) {
             }
                 
             var teacherID;
-            var courseID;
             var parentID = null;
             var teacherName;
-            var courseGrade;
-            var courseSubject; 
             var parentTitle;
             
             var requestedLessonPlan;
@@ -522,28 +496,6 @@ router.get('/viewLesson', function (req, res) {
                     {
                         teacherName = teacher.name;
                         next();
-                    }
-                })
-            }
-            
-            var findCourse = function(next) {
-                Course.findById(courseID, function(err, course) {
-                    if (err)
-                    {
-                        next('Could not find course' + err);
-                    }
-                    else
-                    {
-                        if (course)
-                        {
-                            courseGrade = course.grade.toString();
-                            courseSubject = course.subject;
-                            next();
-                        }
-                        else
-                        {
-                            next('Could not find course' + err);   
-                        }
                     }
                 })
             }
@@ -573,8 +525,8 @@ router.get('/viewLesson', function (req, res) {
             var populateLessonPlanView = function() {
                 var lessonPlanViewObject = {}
                 lessonPlanViewObject.title = requestedLessonPlan.title;
-                lessonPlanViewObject.grade = courseGrade;
-                lessonPlanViewObject.subject = courseSubject;
+                lessonPlanViewObject.grade = requestedLessonPlan.course.grade;
+                lessonPlanViewObject.subject = requestedLessonPlan.course.subject;
                 lessonPlanViewObject.duration = requestedLessonPlan.duration_in_days;
                 if (parentID != '')
                 {
@@ -587,7 +539,7 @@ router.get('/viewLesson', function (req, res) {
                 res.render('dashboard/viewLesson', {lessonPlan: lessonPlanViewObject});
             }
             
-            wait([findTeacher, findLessonPlan, findCourse], populateLessonPlanView, onErrorfn);
+            wait([findTeacher, findLessonPlan], populateLessonPlanView, onErrorfn);
         }
     })
 })
@@ -605,27 +557,12 @@ router.get('/newcourse', function(req, res) {
             res.render('/');
         }
         else {
-            Course.find({ 
-                    _id: { $in: teacher.courses}
-                }, function (err, courses) {
-                    if (err)
-                    {
-                        //Flash
-                        req.flash('info', 'Unable to find courses for this teacher');
-                        res.render('dashboard/newcourse', { message: req.flash('info') });
-                    }
-                    else {
-                        res.render('dashboard/newcourse', { message: req.flash('info'), teachercourses: courses });
-                    } 
-                });
+            res.render('dashboard/newcourse', { message: req.flash('info'), teachercourses: teacher.courses });
         }
     });
 });
 
 router.post('/createcourse', function(req, res) {
-    //Look for courses with this grade
-    //iterate through all courses with this grade and find the one with this subject
-    //
     Teacher.findById(req.user.id, function (err, teacher){
             if (err)
             {
@@ -634,82 +571,72 @@ router.post('/createcourse', function(req, res) {
             }
             else
             {
-                Course.findOne( { grade: req.body.courseGrade, subject: req.body.courseSubject }, function (err, course) {
-                    if (!course)
-                    {
-                        // if no course is found, we will add the course
-                        var newCourse = new Course({ grade: req.body.courseGrade, subject: req.body.courseSubject});
-                        newCourse.teachers.push(teacher);
-                        
-                        newCourse.save(function(err) {
-                            if (err)
-                            {
-                                req.flash('info', 'Saving the new course failed');
-                                res.redirect('newcourse');
-                            }
-                            else
-                            {
-                                console.log('New Course id: ' + newCourse._id);
-                                teacher.courses.push(newCourse);
-                                console.log('pushed');
-                                teacher.save(
-                                    function(err){
-                                        if (err)
-                                        {
-                                            req.flash('info', 'Adding this course failed!');
-                                        }
-                                        else
-                                        {
-                                            req.flash('info', 'Success!');
-                                        }
-                                        res.redirect('newcourse');
-                                    }
-                                );
-                            }
-                        });
-                    }
-                    else
-                    {
-                        //course exists, 
-                        //only add it to the teacher, if the teacher doesnt already have it
-                        if (teacher.courses.indexOf(course._id) >= 0)
+                var courseIndex = findCourseIndex(teacher.courses, req.body.courseGrade, req.body.courseSubject);
+                if (courseIndex == -1)
+                {
+                    var course = { grade: req.body.courseGrade, subject: req.body.courseSubject };
+                    teacher.courses.push(course);
+                    
+                    teacher.save(function(err) {
+                        if (err)
                         {
-                            console.log('Enrolled');
-                            req.flash('info', 'You are already enrolled in this course!');
-                            res.redirect('newcourse');
+                            req.flash('info', 'Adding this course failed!');
                         }
                         else
                         {
-                            teacher.courses.push(course);
-                            teacher.save(
-                                function(err){
-                                    if (err)
-                                    {
-                                        req.flash('info', 'Enrolling in this class failed');
-                                        res.redirect('newcourse');
-                                    }
-                                    else
-                                    {
-                                        course.teachers.push(teacher);
-                                        course.save(function(err){
-                                            if (err)
-                                            {
-                                                req.flash('info', 'Saving the course failed');
-                                            }
-                                            else
-                                            {
-                                                req.flash('info', 'Success!');
-                                            }
-                                            res.redirect('newcourse');
-                                        });
-                                    }
-                                });
+                            req.flash('info', 'Success!');
                         }
-                    }
-                } );
+                    })
+                }
+                else
+                {
+                    req.flash('info', 'Thise course already exists in your enrolled courses!');
+                }
+                
+                res.redirect('newcourse');
             }
     });
 });
+
+router.post('/removecourse', function(req, res) {
+    Teacher.findById(req.user.id, function (err, teacher){
+            if (err)
+            {
+                ErrorFunction(req, res, "No teacher found.", "newcourse", err);
+            }
+            else
+            {
+                var courseToRemove = findCourseFromString(req.body.course);
+                
+                if (!courseToRemove)
+                {
+                    ErrorFunction(req, res, "No such course. Please contact admin.", "newcourse", "bad string format");
+                }
+                
+                var courseIndex = findCourseIndex(teacher.courses, courseToRemove.grade, courseToRemove.subject);
+                if (courseIndex != -1)
+                {
+                    teacher.courses.splice(courseIndex, 1);
+                    
+                    teacher.save(function(err) {
+                        if (err)
+                        {
+                            ErrorFunction(req, res, 'Removing this course failed!', 'newcourse', err);
+                        }
+                        else
+                        {
+                            req.flash('info', 'Success!');
+                            res.redirect('newcourse');
+                        }
+                    })
+                }
+                else
+                {
+                    ErrorFunction(req, res, 'You are not enrolled in this course', 'newcourse');
+                }
+            }
+    });
+})
 
 router.get('/viewAllLessons', function (req, res) {
     if (!req.param('id') || req.param('id') == '')
@@ -729,33 +656,7 @@ router.get('/viewAllLessons', function (req, res) {
                 ErrorFunction(req, res, 'No lessons found', '/dashboard', err);
             }
             
-            var allCourseIds = [];
-            lessonPlans.forEach(function (lesson, index) {
-                allCourseIds.push(lesson.course);
-            });
-            
-            Course.find( { _id: { $in: allCourseIds } }, function (err, courses) {
-                if (err)
-                {
-                    ErrorFunction(req, res, 'No lessons found', '/dashboard', err);
-                }   
-                
-                var courseMap = {}
-                courses.forEach(function (course, index) {
-                    courseMap[course.id] = 'Grade ' + course.grade + ' ' + course.subject;
-                })
-                
-                console.log(courseMap);
-                
-                lessonPlans.forEach(function (lesson, index) {
-                    console.log(courseMap[lesson.course]);
-                    lessonPlans[index].courseName = courseMap[lesson.course];
-                })
-                
-                console.log(lessonPlans);
-                res.render('dashboard/viewAllLessonPlans', { requestedLessonPlans: lessonPlans, teacherName: teacher.name }); //, course: 'Grade' + course.grade + course.subject }); 
-            })
-            
+            res.render('dashboard/viewAllLessonPlans', { requestedLessonPlans: lessonPlans, teacherName: teacher.name });
         })
     })
 })
@@ -801,19 +702,6 @@ router.post('/removeLesson', function (req, res) {
             })
         }
         
-        var findCourse = function(next) {
-            Course.removeLessonFromCourse(lesson.course, lesson, function(err) {
-                if (err)
-                {
-                    next('Could not find course' + err);
-                }
-                else
-                {
-                    next();
-                }
-            })
-        }
-        
         var findLessonPlan = function(next) {
             if (lesson.parent)
             {
@@ -846,7 +734,7 @@ router.post('/removeLesson', function (req, res) {
             });
         }
         
-        wait([findTeacher, findCourse, findLessonPlan], removeLesson, onErrorfn);
+        wait([findTeacher, findLessonPlan], removeLesson, onErrorfn);
     
     })
 });

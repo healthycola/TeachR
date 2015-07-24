@@ -10,7 +10,7 @@ Current -> Parent -> OriginalParent
 
 var LessonPlan = new Schema({
     title: String,
-	course: { type: Schema.Types.ObjectId, ref: 'Course' },
+	course: { grade: Number, subject: String },
 	parent: { type: Schema.Types.ObjectId, ref: 'LessonPlan' },
     original_parent: { type: Schema.Types.ObjectId, ref: 'LessonPlan' },
 	children: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }],
