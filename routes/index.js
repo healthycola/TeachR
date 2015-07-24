@@ -57,7 +57,7 @@ router.post('/register', function(req, res) {
             { 
                 name: req.body.name,
                 school: req.body.school,
-                email: req.body.useremail,
+                email: req.body.email,
                 username: req.body.username,
             }
             ),
@@ -235,7 +235,7 @@ router.post('/updateuserinfo', function(req,res) {
         console.log(req);
         var _name = (req.body.name) ? req.body.name : req.user.name;
         var _school = (req.body.school) ? req.body.school : req.user.school;
-        var _email = (req.body.useremail) ? req.body.useremail : req.user.email;
+        var _email = (req.body.email) ? req.body.email : req.user.email;
         
         Teacher.findById(req.user.id, function (err, teacher){
             if (err)

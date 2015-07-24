@@ -12,17 +12,43 @@
 function escape(s) {
     var n = s;
     n = n.replace(/&/g, "&amp;");
-    n = n.replace(/</g, "&lt;");
-    n = n.replace(/>/g, "&gt;");
+    //n = n.replace(/</g, "&lt;");
+    //n = n.replace(/>/g, "&gt;");
     n = n.replace(/"/g, "&quot;");
 
     return n;
 }
 
+String.prototype.splice = function( idx, rem, s ) {
+    return (this.slice(0,idx) + s + this.slice(idx + Math.abs(rem)));
+};
+
+function spaceOutHTMLTags(os) {
+  var o = os;
+  //Find all HTML tags, and if they don't have a space between them, then add it
+  var pos = o.indexOf('<', 0);
+  while (pos != -1)
+  {
+    if (o[pos - 1] != ' ' && pos != 0)
+      o = o.splice(pos, 0, ' ');
+    
+    pos = o.indexOf('>', pos + 1);
+    if (o[pos + 1] != ' ' && pos != o.length - 1)
+      o = o.splice(pos+1, 0, ' ');
+      
+    pos = o.indexOf('<', pos + 1);
+  }
+  
+  return o;
+}
+
 function diffString( o, n ) {
+  // Remove trailing spaces
   o = o.replace(/\s+$/, '');
   n = n.replace(/\s+$/, '');
-
+  o = spaceOutHTMLTags(o);
+  n = spaceOutHTMLTags(n);
+  
   var out = diff(o == "" ? [] : o.split(/\s+/), n == "" ? [] : n.split(/\s+/) );
   var str = "";
 
