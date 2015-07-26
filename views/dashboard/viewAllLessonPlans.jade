@@ -21,7 +21,8 @@ block dashcontent
                     dd #{lesson.lesson_plan_expectations}
                     dt Actions
                     dd
-                        a.btn.btn-primary(type='button') Edit
+                        a.btn.btn-primary(type='button'
+                            href='editEntry?id=' + lesson.id) Edit
                         span 
                         | 
                         a.btn.btn-primary(type='button', data-toggle='modal'

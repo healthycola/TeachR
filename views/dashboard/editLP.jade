@@ -19,7 +19,7 @@ block dashcontent
         ng-app="TextAngularDemo"
         ng-controller="DemoController")
         .row
-            .col-md-12
+            .col-md-8
                 .form-group(
                     ng-class="( createLessonPlanForm.title.$dirty ? (createLessonPlanForm.title.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
                     label.requiredLabel(for='lessonTitle') Title
@@ -32,25 +32,6 @@ block dashcontent
                     <span ng-if="createLessonPlanForm.title.$invalid && createLessonPlanForm.title.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
                     //Valid
                     <p ng-show="createLessonPlanForm.title.$invalid && createLessonPlanForm.title.$dirty" class="bg-danger pad">Please enter valid title.</p>
-        .row
-            .col-md-12
-                .form-group(
-                    ng-class="( createLessonPlanForm.course.$dirty ? (createLessonPlanForm.course.$valid ? 'has-success has-feedback' : 'has-error has-feedback' ) : ' ')")
-                        label(for='course') Courses
-                        - var test = JSON.stringify(usercourses)
-                        - var test2 = JSON.stringify(courseLessonPlan)
-                        select#courses.form-control(name="course" onChange=("test(this.options[this.selectedIndex].value)") ng-model="lessonPlan.course" required)
-                            - each course in usercourses
-                                option Grade #{course.grade} #{course.subject}
-                        //Invalid
-                        <span ng-if="createLessonPlanForm.course.$invalid && createLessonPlanForm.course.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
-                        //Valid
-                        <p ng-show="createLessonPlanForm.course.$invalid && createLessonPlanForm.course.$dirty" class="bg-danger pad">Please select a course.</p>
-        .row
-            .col-md-8
-                .form-group
-                    label(for='lessonlink') Link this to another lesson
-                    select#lessonLinks.form-control(name='lessonlink')
             .col-md-4
                     label(for='lessonDuration') Duration of Lesson
                     .form-group(
@@ -113,16 +94,3 @@ block dashcontent
         .form-group
             button.btn.btn-default(ng-disabled="createLessonPlanForm.$invalid") Submit
          p
-    script.
-        function test(par) {
-            var data = !{JSON.stringify(courseLessonPlan)}
-            var lessonPlans = data[par];
-            
-            $('#lessonLinks option').each(function(i, option){ $(option).remove(); });
-            if (lessonPlans)
-            {
-                lessonPlans.forEach(function(element) {
-                    $('#lessonLinks').append(new Option(element.title, element.title, true, true));
-                }, this);
-            }
-        }

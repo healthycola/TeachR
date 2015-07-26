@@ -235,7 +235,7 @@ router.get('/follow', function(req,res) {
 router.get('/unfollow', function(req,res) {
     if (!req.param('id') || req.param('id') == '')
     {
-        ErrorFunction(req, res, 'No user specified');
+        ErrorFunction(req, res, 'No user specified', 'myfriends');
     }
     
     Teacher.UnfollowTeacher(req.user.id, req.param("id"), function(sourceUser, destUser, err){
@@ -334,6 +334,27 @@ router.get('/newentry', function(req, res) {
             wait([findAllLessonsFromTeacher], viewPage, onErrorfn);
         }
     });
+});
+
+router.get('/editEntry', function(req, res) {
+    if (!req.param('id') || req.param('id') == '')
+    {
+        ErrorFunction(req, res, 'No lesson specified', 'dashboard');
+    }
+    
+    LessonPlan.findById(req.param('id'), function (err, lesson) {
+        console.log(lesson);
+       console.log(lesson.author);
+       console.log(req.user._id);
+        if (parseInt(lesson.author) != parseInt(req.user._id))
+        {
+            ErrorFunction(req, res, 'You are not allowed to edit this post.', 'dashboard');
+        }
+        else
+        {
+            res.render('dashboard/editLP', { message: req.flash('info') });
+        }
+    })
 });
 
 router.post('/newlessonplan', function(req, res) {
