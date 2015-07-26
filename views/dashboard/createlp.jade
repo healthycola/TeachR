@@ -1,7 +1,6 @@
 extends layoutdash
 
 block dashcontent
-    script(src='/javascripts/selectionLoad.js')
     script(src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js')
     
     //Text Angular
@@ -40,7 +39,7 @@ block dashcontent
                         label(for='course') Courses
                         - var test = JSON.stringify(usercourses)
                         - var test2 = JSON.stringify(courseLessonPlan)
-                        select.form-control(name="course" onchange="valChange(this, 'lessonLinks', #{test}, #{test2})" ng-model="lessonPlan.course" required)
+                        select#courses.form-control(name="course" onChange=("test(this.options[this.selectedIndex].value)") ng-model="lessonPlan.course" required)
                             - each course in usercourses
                                 option Grade #{course.grade} #{course.subject}
                         //Invalid
@@ -83,13 +82,6 @@ block dashcontent
                         ta-toolbar-button-class="btn btn-default" 
                         ta-toolbar-button-active-class="active"
                         required)
-                    //textarea#lessonText.form-control(
-                        type="text"
-                        name="LessonPlanText" 
-                        rows='10' 
-                        placeholder='Lesson Plan'
-                        ng-model='lessonPlan.LessonPlanText' 
-                        required)
                     //Invalid
                     <span ng-if="createLessonPlanForm.LessonPlanText.$invalid && createLessonPlanForm.LessonPlanText.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
                     //Valid
@@ -120,3 +112,17 @@ block dashcontent
             a(href='#') Add More
         .form-group
             button.btn.btn-default(ng-disabled="createLessonPlanForm.$invalid") Submit
+         p
+    script.
+        function test(par) {
+            var data = !{JSON.stringify(courseLessonPlan)}
+            var lessonPlans = data[par];
+            
+            $('#lessonLinks option').each(function(i, option){ $(option).remove(); });
+            if (lessonPlans)
+            {
+                lessonPlans.forEach(function(element) {
+                    $('#lessonLinks').append(new Option(element.title, element.title, true, true));
+                }, this);
+            }
+        }

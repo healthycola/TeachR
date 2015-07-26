@@ -313,9 +313,9 @@ router.get('/newentry', function(req, res) {
                         lessonPlans.forEach(function(element) {
                             if (!(element.course in courseLessonMap))
                             {
-                                courseLessonMap[element.course] = [];
+                                courseLessonMap['Grade ' + element.course.grade + ' ' + element.course.subject] = [];
                             }
-                            courseLessonMap[element.course].push(element);
+                            courseLessonMap['Grade ' + element.course.grade + ' ' + element.course.subject].push(element);
                         }, this);
                         
                         _courseLessonMap = courseLessonMap;
