@@ -8,7 +8,6 @@ block dashcontent
     script(src='/javascripts/textAngular-rangy.min.js')
     script(src='/javascripts/textAngular-sanitize.min.js')
     script(src='/javascripts/textAngular.min.js')
-    script(src='/javascripts/createLPFormValidate.js')
     
     h2.page-header Edit Lesson Plan
     form.themed(
@@ -26,7 +25,7 @@ block dashcontent
                     input#lessonTitle.form-control(
                         placeholder='Title of lesson plan'
                         name='title'
-                        ng-model='lessonPlan.title'
+                        ng-model='title'
                         required)
                     //Invalid
                     <span ng-if="createLessonPlanForm.title.$invalid && createLessonPlanForm.title.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
@@ -41,7 +40,7 @@ block dashcontent
                                     type="number" 
                                     name="duration" 
                                     placeholder="Duration" 
-                                    ng-model="lessonPlan.duration" 
+                                    ng-model="duration" 
                                     required)
                                 .input-group-addon Days
                         //Invalid
@@ -75,7 +74,7 @@ block dashcontent
                     textarea#lessonText.form-control(
                         rows='5' 
                         name='expectations' 
-                        ng-model='lessonPlan.expectations' 
+                        ng-model='expectations' 
                         placeholder='Expectations' 
                         required)
                         
@@ -94,3 +93,14 @@ block dashcontent
         .form-group
             button.btn.btn-default(ng-disabled="createLessonPlanForm.$invalid") Submit
          p
+         
+         script.
+            var data = !{JSON.stringify(originalLessonPlan)}
+            console.log(data);
+            angular.module("TextAngularDemo", ['textAngular']).controller("DemoController", DemoController);
+            function DemoController($scope) {
+                $scope.htmlContent = data.lesson_plan_text;
+                $scope.title = data.title;
+                $scope.duration = data.duration_in_days;
+                $scope.expectations = data.lesson_plan_expectations;
+            };

@@ -352,7 +352,7 @@ router.get('/editEntry', function(req, res) {
         }
         else
         {
-            res.render('dashboard/editLP', { message: req.flash('info') });
+            res.render('dashboard/editLP', { message: req.flash('info'), originalLessonPlan: lesson });
         }
     })
 });
