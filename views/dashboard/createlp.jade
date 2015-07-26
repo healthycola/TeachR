@@ -123,7 +123,7 @@ block dashcontent
             {
                 $('#lessonLinks').append(new Option('', '', true, true));
                 lessonPlans.forEach(function(element) {
-                    $('#lessonLinks').append(new Option(element.title, element.title, false, false));
+                    $('#lessonLinks').append(new Option(element, element, false, false));
                 }, this);
             }
         }
