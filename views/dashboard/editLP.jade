@@ -10,7 +10,7 @@ block dashcontent
     script(src='/javascripts/textAngular.min.js')
     script(src='/javascripts/createLPFormValidate.js')
     
-    h2.page-header Create New Lesson Plan
+    h2.page-header Edit Lesson Plan
     form.themed(
         name='createLessonPlanForm' 
         method="post", 
@@ -39,7 +39,7 @@ block dashcontent
                         label(for='course') Courses
                         - var test = JSON.stringify(usercourses)
                         - var test2 = JSON.stringify(courseLessonPlan)
-                        select#courses.form-control(name="course" onChange=("updateSelection(this.options[this.selectedIndex].value)") ng-model="lessonPlan.course" required)
+                        select#courses.form-control(name="course" onChange=("test(this.options[this.selectedIndex].value)") ng-model="lessonPlan.course" required)
                             - each course in usercourses
                                 option Grade #{course.grade} #{course.subject}
                         //Invalid
@@ -114,16 +114,15 @@ block dashcontent
             button.btn.btn-default(ng-disabled="createLessonPlanForm.$invalid") Submit
          p
     script.
-        function updateSelection(selectedVal) {
+        function test(par) {
             var data = !{JSON.stringify(courseLessonPlan)}
-            var lessonPlans = data[selectedVal];
-            console.log(data);
+            var lessonPlans = data[par];
+            
             $('#lessonLinks option').each(function(i, option){ $(option).remove(); });
             if (lessonPlans)
             {
-                $('#lessonLinks').append(new Option('', '', true, true));
                 lessonPlans.forEach(function(element) {
-                    $('#lessonLinks').append(new Option(element, element, false, false));
+                    $('#lessonLinks').append(new Option(element.title, element.title, true, true));
                 }, this);
             }
         }

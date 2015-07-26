@@ -14,9 +14,9 @@ block dashcontent
             dt Duration
             - var dayText = (lessonPlan.duration > 1) ? 'days' : (lessonPlan.duration == 1) ? 'day' : 'of a day';
             dd #{lessonPlan.duration} #{dayText}
-            - if (lessonPlan.parent)
-                dt Parent Lesson
-                dd #{lessonPlan.parentTitle}
+            - if (lessonPlan.linkedLessonTitle)
+                dt Linked Lesson
+                dd #{lessonPlan.linkedLessonTitle}
             dt Author 
             dd #{lessonPlan.author}
             dt Expectations 

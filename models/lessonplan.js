@@ -11,10 +11,9 @@ Current -> Parent -> OriginalParent
 var LessonPlan = new Schema({
     title: String,
 	course: { grade: Number, subject: String },
-	parent: { type: Schema.Types.ObjectId, ref: 'LessonPlan' },
-    original_parent: { type: Schema.Types.ObjectId, ref: 'LessonPlan' },
-	children: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }],
-	original_teacher: { type: Schema.Types.ObjectId, ref: 'Teacher' },
+    parents: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }],
+	author: { type: Schema.Types.ObjectId, ref: 'Teacher' },
+    linkedLesson: { type: Schema.Types.ObjectId, ref: 'LessonPlan' },
 	duration_in_days: Number,
 	lesson_plan_text: String,
 	lesson_plan_expectations: String,
@@ -43,9 +42,10 @@ LessonPlan.statics.findAllLessonsFromTeacher = function(teacher, cb) {
     }, cb);
 }
 
-LessonPlan.statics.findLessonPlanWithName = function(lessonPlanName, cb) {
+LessonPlan.statics.findLessonPlanWithNameAndCourse = function(lessonPlanName, courseOfLesson, cb) {
     return this.find({
-        title: lessonPlanName
+        title: lessonPlanName,
+        course: courseOfLesson
     }, cb);
 }
 
