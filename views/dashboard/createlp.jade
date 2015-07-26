@@ -121,8 +121,9 @@ block dashcontent
             $('#lessonLinks option').each(function(i, option){ $(option).remove(); });
             if (lessonPlans)
             {
+                $('#lessonLinks').append(new Option('', '', true, true));
                 lessonPlans.forEach(function(element) {
-                    $('#lessonLinks').append(new Option(element.title, element.title, true, true));
+                    $('#lessonLinks').append(new Option(element.title, element.title, false, false));
                 }, this);
             }
         }
