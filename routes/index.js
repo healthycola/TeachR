@@ -315,7 +315,7 @@ router.get('/newentry', function(req, res) {
                             {
                                 courseLessonMap['Grade ' + element.course.grade + ' ' + element.course.subject] = [];
                             }
-                            courseLessonMap['Grade ' + element.course.grade + ' ' + element.course.subject].push(element);
+                            courseLessonMap['Grade ' + element.course.grade + ' ' + element.course.subject].push(element.title);
                         }, this);
                         
                         _courseLessonMap = courseLessonMap;

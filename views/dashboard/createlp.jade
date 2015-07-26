@@ -39,7 +39,7 @@ block dashcontent
                         label(for='course') Courses
                         - var test = JSON.stringify(usercourses)
                         - var test2 = JSON.stringify(courseLessonPlan)
-                        select#courses.form-control(name="course" onChange=("test(this.options[this.selectedIndex].value)") ng-model="lessonPlan.course" required)
+                        select#courses.form-control(name="course" onChange=("updateSelection(this.options[this.selectedIndex].value)") ng-model="lessonPlan.course" required)
                             - each course in usercourses
                                 option Grade #{course.grade} #{course.subject}
                         //Invalid
@@ -114,9 +114,9 @@ block dashcontent
             button.btn.btn-default(ng-disabled="createLessonPlanForm.$invalid") Submit
          p
     script.
-        function test(par) {
+        function updateSelection(selectedVal) {
             var data = !{JSON.stringify(courseLessonPlan)}
-            var lessonPlans = data[par];
+            var lessonPlans = data[selectedVal];
             
             $('#lessonLinks option').each(function(i, option){ $(option).remove(); });
             if (lessonPlans)
