@@ -257,6 +257,11 @@ router.get('/updateuserinfo', function(req,res) {
 
 
 router.post('/updateuserinfo', function(req,res) {
+    if (!req.user)
+    {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+    }
+    
     if (req.user)
     {
         console.log(req);
@@ -357,7 +362,38 @@ router.get('/editEntry', function(req, res) {
     })
 });
 
+router.post('/editLessonPlan/:id', function(req, res) {
+    if (!req.params.id)
+    {
+        ErrorFunction(req, res, 'No lesson specified', '/dashboard');
+    }
+    
+    LessonPlan.update({ _id: req.params.id }, { $set: 
+        {
+            title: req.body.title,
+            duration_in_days: req.body.duration,
+            lesson_plan_text: req.body.LessonPlanText,
+            lesson_plan_expectations: req.body.expectations
+        }
+        }, function(err) {
+            if (err)
+            {
+                ErrorFunction(req, res, "Error while updating document.", '/viewLesson?id=' + req.param.id, err);
+            }
+            else
+            {
+                req.flash('info', 'Success!');
+                res.redirect('/viewLesson?id=' + req.params.id);
+            }
+        })
+});
+
 router.post('/newlessonplan', function(req, res) {
+    if (!req.user)
+    {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+    }
+    
     var lessonPlanLinked;
     var currentTeacher;
     
@@ -567,6 +603,11 @@ router.get('/newcourse', function(req, res) {
 });
 
 router.post('/createcourse', function(req, res) {
+    if (!req.user)
+    {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+    }
+    
     Teacher.findById(req.user.id, function (err, teacher){
             if (err)
             {
@@ -603,6 +644,11 @@ router.post('/createcourse', function(req, res) {
 });
 
 router.post('/removecourse', function(req, res) {
+    if (!req.user)
+    {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+    }
+    
     Teacher.findById(req.user.id, function (err, teacher){
             if (err)
             {
@@ -666,6 +712,11 @@ router.get('/viewAllLessons', function (req, res) {
 })
 
 router.post('/removeLesson', function (req, res) {
+    if (!req.user)
+    {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+    }
+    
     if (!req.body.lessonID || req.body.lessonID == '')
     {
         ErrorFunction(req, res, 'No Lesson to remove', '/dashboard', null);

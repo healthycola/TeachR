@@ -13,7 +13,7 @@ block dashcontent
     form.themed(
         name='createLessonPlanForm' 
         method="post", 
-        action="newlessonplan"
+        action="editLessonPlan/" + originalLessonPlan._id
         novalidate 
         ng-app="TextAngularDemo"
         ng-controller="DemoController")
