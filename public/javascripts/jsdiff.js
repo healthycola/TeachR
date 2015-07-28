@@ -48,7 +48,6 @@ function diffString( o, n ) {
   n = n.replace(/\s+$/, '');
   o = spaceOutHTMLTags(o);
   n = spaceOutHTMLTags(n);
-  
   var out = diff(o == "" ? [] : o.split(/\s+/), n == "" ? [] : n.split(/\s+/) );
   var str = "";
 

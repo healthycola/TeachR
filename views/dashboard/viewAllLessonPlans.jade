@@ -17,12 +17,13 @@ block dashcontent
                             dt Duration
                             - var dayText = (lesson.duration_in_days > 1) ? 'days' : (lesson.duration_in_days == 1) ? 'day' : 'of a day'; 
                             dd #{lesson.duration_in_days} #{dayText}
-                    dt Forked from
-                    dd 
-                        - for (var parentIndex = 0; parentIndex < lesson.parents.length; ++parentIndex)
-                            a.btn.btn-forkedLessons(type='button'
-                                href='viewLesson?id=' + lesson.parents[parentIndex]) #{parentIndex + 1}
-                            span 
+                    if (lesson.parents.length > 0)
+                        dt Forked from
+                        dd 
+                            - for (var parentIndex = 0; parentIndex < lesson.parents.length; ++parentIndex)
+                                a.btn.btn-forkedLessons(type='button'
+                                    href='viewLesson?id=' + lesson.parents[parentIndex]) #{parentIndex + 1}
+                                span 
                     dt Expectations
                     dd #{lesson.lesson_plan_expectations}
                     dt Actions

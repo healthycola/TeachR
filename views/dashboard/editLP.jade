@@ -8,6 +8,7 @@ block dashcontent
     script(src='/javascripts/textAngular-rangy.min.js')
     script(src='/javascripts/textAngular-sanitize.min.js')
     script(src='/javascripts/textAngular.min.js')
+    script(src='/javascripts/jsdiff.js')
     
     h2.page-header #{mode.modeText} Lesson Plan
     form.themed(
@@ -61,11 +62,15 @@ block dashcontent
                         ta-toolbar-group-class="btn-group" 
                         ta-toolbar-button-class="btn btn-default" 
                         ta-toolbar-button-active-class="active"
+                        ng-change="change()"
                         required)
                     //Invalid
                     <span ng-if="createLessonPlanForm.LessonPlanText.$invalid && createLessonPlanForm.LessonPlanText.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
                     //Valid
                     <p ng-show="createLessonPlanForm.LessonPlanText.$invalid && createLessonPlanForm.LessonPlanText.$dirty" class="bg-danger pad">Please enter some text.</p>
+        .row
+            .col-md-12
+                div.forkStaging(ng-bind-html='lessonPlanTextDiff')
         .row
             .col-md-12
                 .form-group(
@@ -76,13 +81,16 @@ block dashcontent
                         name='expectations' 
                         ng-model='expectations' 
                         placeholder='Expectations' 
+                        ng-change="changeExpectations()"
                         required)
                         
                         //Invalid
                     <span ng-if="createLessonPlanForm.expectations.$invalid && createLessonPlanForm.expectations.$dirty" class="glyphicon glyphicon-remove form-control-feedback"></span>
                     //Valid
                     <p ng-show="createLessonPlanForm.expectations.$invalid && createLessonPlanForm.expectations.$dirty" class="bg-danger pad">Please enter some text.</p>
-                    
+        .row
+            .col-md-12
+                div.forkStaging(ng-bind-html='expectationsTextDiff')
         p
         .form-group
             .attachmentgroup
@@ -96,11 +104,28 @@ block dashcontent
          
          script.
             var data = !{JSON.stringify(originalLessonPlan)}
-            console.log(data);
+            var stripHTML = function(input) {
+                    var test = input.replace(/(<(?=p)(?:[^]|\n)*?>)/gm, ' REPLACEMENTHACK ')
+                    test = test.replace(/<(?:.|\n)*?>/gm, '');
+                    return test.replace(/\bREPLACEMENTHACK\b/gm, '<p>')
+                }
             angular.module("TextAngularDemo", ['textAngular']).controller("DemoController", DemoController);
             function DemoController($scope) {
-                $scope.htmlContent = data.lesson_plan_text;
+                $scope.originalText = stripHTML(data.lesson_plan_text);
+                $scope.originalExpecatations = data.lesson_plan_expectations;
+                $scope.htmlContent = $scope.originalText;
                 $scope.title = data.title;
                 $scope.duration = data.duration_in_days;
                 $scope.expectations = data.lesson_plan_expectations;
+                $scope.lessonPlanTextDiff = $scope.originalText;
+                $scope.expectationsTextDiff = $scope.originalExpecatations;
+                
+                
+                $scope.change = function() {
+                  $scope.lessonPlanTextDiff = diffString($scope.originalText, stripHTML($scope.htmlContent));
+                };
+                
+                $scope.changeExpectations = function() {
+                    $scope.expectationsTextDiff = diffString($scope.originalExpecatations, $scope.expectations);
+                }
             };

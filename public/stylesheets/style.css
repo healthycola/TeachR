@@ -270,3 +270,25 @@ form {
   background-color: #bbb;
   border-color: #aaa;
 }
+
+.forkStaging {
+  display: block;
+  padding: 15px;
+  margin: 0 0 10px;
+  color: #333;
+  word-break: break-all;
+  word-wrap: break-word;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.forkStaging ins {
+  background-color: #CEF6CE;
+  text-decoration: none;
+}
+
+.forkStaging del {
+  background-color: #F6CED8;
+  text-decoration: none;
+}
