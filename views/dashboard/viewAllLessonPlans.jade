@@ -5,47 +5,59 @@ block dashcontent
     if requestedLessonPlans.length > 0
         - each lesson in requestedLessonPlans
             dl.dl-horizontal
-                    dt Title
-                    dd 
-                        a(href='viewLesson?id=' + lesson._id)
-                            span #{lesson.title}
-                    - if (lesson.date)
-                        dt Created on
-                        - var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
-                        - var month = monthNames[lesson.date.getUTCMonth()];
-                        - var day = lesson.date.getDate();
-                        - var year = lesson.date.getFullYear();
-                        dd #{month} #{day}, #{year}
-                    .row
-                        .col-md-6
-                            dt Course
-                            dd #{lesson.course.grade} #{lesson.course.subject}
-                        .col-md-6
-                            dt Duration
-                            - var dayText = (lesson.duration_in_days > 1) ? 'days' : (lesson.duration_in_days == 1) ? 'day' : 'of a day'; 
-                            dd #{lesson.duration_in_days} #{dayText}
-                    if (lesson.parents.length > 0)
-                        dt Forked from
+                .row
+                    .col-md-1
+                        - if (lesson.date)
+                            - var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec" ];
+                            - var month = monthNames[lesson.date.getUTCMonth()];
+                            - var day = lesson.date.getDate();
+                            - var year = lesson.date.getFullYear();
+                            .date
+                                .month #{month}
+                                .day #{day}
+                                .year #{year}
+                    .col-md-11
+                        dt Title
                         dd 
-                            - for (var parentIndex = 0; parentIndex < lesson.parents.length; ++parentIndex)
-                                a.btn.btn-forkedLessons(type='button'
-                                    href='viewLesson?id=' + lesson.parents[parentIndex]) #{parentIndex + 1}
+                            a(href='viewLesson?id=' + lesson._id)
+                                span #{lesson.title}
+                        - if (lesson.date)
+                            dt Created on
+                            - var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+                            - var month = monthNames[lesson.date.getUTCMonth()];
+                            - var day = lesson.date.getDate();
+                            - var year = lesson.date.getFullYear();
+                            dd #{month} #{day}, #{year}
+                        .row
+                            .col-md-6
+                                dt Course
+                                dd #{lesson.course.grade} #{lesson.course.subject}
+                            .col-md-6
+                                dt Duration
+                                - var dayText = (lesson.duration_in_days > 1) ? 'days' : (lesson.duration_in_days == 1) ? 'day' : 'of a day'; 
+                                dd #{lesson.duration_in_days} #{dayText}
+                        if (lesson.parents.length > 0)
+                            dt Forked from
+                            dd 
+                                - for (var parentIndex = 0; parentIndex < lesson.parents.length; ++parentIndex)
+                                    a.btn.btn-forkedLessons(type='button'
+                                        href='viewLesson?id=' + lesson.parents[parentIndex]) #{parentIndex + 1}
+                                    span 
+                        dt Expectations
+                        dd #{lesson.lesson_plan_expectations}
+                        dt Actions
+                        dd
+                            if (user.id == lesson.author)
+                                a.btn.btn-primary(type='button'
+                                    href='editEntry?id=' + lesson.id) Edit
                                 span 
-                    dt Expectations
-                    dd #{lesson.lesson_plan_expectations}
-                    dt Actions
-                    dd
-                        if (user.id == lesson.author)
-                            a.btn.btn-primary(type='button'
-                                href='editEntry?id=' + lesson.id) Edit
-                            span 
-                            | 
-                            a.btn.btn-primary(type='button', data-toggle='modal'
-                                href='#exampleModal'
-                                data-whatever=lesson.id) delete
-                        else
-                            a.btn.btn-primary(type='button'
-                                href='forkEntry?id=' + lesson.id) Fork
+                                | 
+                                a.btn.btn-primary(type='button', data-toggle='modal'
+                                    href='#exampleModal'
+                                    data-whatever=lesson.id) delete
+                            else
+                                a.btn.btn-primary(type='button'
+                                    href='forkEntry?id=' + lesson.id) Fork
     else
         span No lessons to show!
     // Modal

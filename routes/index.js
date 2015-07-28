@@ -287,7 +287,7 @@ router.get('/dashboard', function (req, res) {
                 })
                 .sort(
                     {
-                        datefield: -1
+                        datefield: 1
                     })
                 .limit(5)
                 .exec(function (err, lessonPlans) {

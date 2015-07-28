@@ -292,3 +292,34 @@ form {
   background-color: #F6CED8;
   text-decoration: none;
 }
+
+.date {
+  background-color: #ccc !important;
+  width: 70px; height: 85px;
+  border-bottom: 1px solid;
+  border-bottom-color: #FF7F50 !important;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.date .month {
+  color: #000;
+  height: 25px;
+  background-color: #fff;
+  text-align: center;
+  padding-top: 3px;
+}
+
+.date .day {
+  color: #999;
+  font-size: 30px;
+  padding-top: 3px;
+  text-align: center;
+}
+
+.date .year {
+  color: #999;
+  font-size: 11px;
+  margin-top: -9px;
+  text-align: center;
+}
