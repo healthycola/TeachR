@@ -258,3 +258,15 @@ form {
 .ta-toolbar {
   margin-bottom: 10px;
 }
+
+.btn-forkedLessons {
+  color: #fff;
+  background-color: #aaa;
+  border-color: #aaa;
+}
+
+.btn-forkedLessons:hover {
+  color: #fff;
+  background-color: #bbb;
+  border-color: #aaa;
+}

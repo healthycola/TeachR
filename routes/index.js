@@ -295,51 +295,76 @@ router.get('/dashboard', function(req, res) {
 });
 
 router.get('/newentry', function(req, res) {
+    if (!req.user)
+    {
+        ErrorFunction(req, res, 'You are not logged in.', '/', null);
+    }
+    
     Teacher.findById(req.user.id, function (err, teacher){
         if (err) {
-            console.log('Finding user failed');
+            ErrorFunction(req, res, 'Unable to find teacher. Admin is looking into it!', '/', null);
         }
         else {
-            var onErrorfn = function (err) {
-                ErrorFunction(req, res, 'Creating a new lesson failed!', '/dashboard', err);
+            if (teacher.courses.length == 0)
+            {
+                ErrorFunction(req, res, 'Please enroll in a course first!', 'newcourse', null);
             }
-            
-            var _courseLessonMap;
-            
-            var findAllLessonsFromTeacher = function (next) {
-                LessonPlan.findAllLessonsFromTeacher(teacher, function (err, lessonPlans) {
-                    if (err || !lessonPlans)
-                    {
-                        next('Error looking for lessons by this teacher' + err);
-                    }
-                    else
-                    {
-                        var courseLessonMap = {};
-                        lessonPlans.forEach(function(element) {
-                            var key = 'Grade ' + element.course.grade + ' ' + element.course.subject;
-                            if (!(key in courseLessonMap))
-                            {
-                                courseLessonMap[key] = [];
-                            }
-                            courseLessonMap[key].push(element.title);
-                        }, this);
-                        
-                        _courseLessonMap = courseLessonMap;
-                        next();
-                    }
-                });
+            else
+            {
+                var onErrorfn = function (err) {
+                    ErrorFunction(req, res, 'Creating a new lesson failed!', '/dashboard', err);
+                }
+                
+                var _courseLessonMap;
+                
+                var findAllLessonsFromTeacher = function (next) {
+                    LessonPlan.findAllLessonsFromTeacher(teacher, function (err, lessonPlans) {
+                        if (err || !lessonPlans)
+                        {
+                            next('Error looking for lessons by this teacher' + err);
+                        }
+                        else
+                        {
+                            var courseLessonMap = {};
+                            lessonPlans.forEach(function(element) {
+                                var key = 'Grade ' + element.course.grade + ' ' + element.course.subject;
+                                if (!(key in courseLessonMap))
+                                {
+                                    courseLessonMap[key] = [];
+                                }
+                                courseLessonMap[key].push(element.title);
+                            }, this);
+                            
+                            _courseLessonMap = courseLessonMap;
+                            next();
+                        }
+                    });
+                }
+                
+                var viewPage = function () {
+                    res.render('dashboard/createlp', { message: req.flash('info'), 
+                        usercourses: teacher.courses, 
+                        courseLessonPlan: _courseLessonMap });
+                }
+                
+                wait([findAllLessonsFromTeacher], viewPage, onErrorfn);
             }
-            
-            var viewPage = function () {
-                res.render('dashboard/createlp', { message: req.flash('info'), 
-                    usercourses: teacher.courses, 
-                    courseLessonPlan: _courseLessonMap });
-            }
-            
-            wait([findAllLessonsFromTeacher], viewPage, onErrorfn);
         }
     });
 });
+
+var editingModes = [
+    {
+        mode: "edit",
+        modeURL: "editLessonPlan",
+        modeText: "Edit"
+    },
+    {
+        mode: "fork",
+        modeURL: "forkLessonPlan",
+        modeText: "Fork"
+    }
+]
 
 router.get('/editEntry', function(req, res) {
     if (!req.param('id') || req.param('id') == '')
@@ -348,16 +373,33 @@ router.get('/editEntry', function(req, res) {
     }
     
     LessonPlan.findById(req.param('id'), function (err, lesson) {
-        console.log(lesson);
-       console.log(lesson.author);
-       console.log(req.user._id);
-        if (parseInt(lesson.author) != parseInt(req.user._id))
+        console.log(parseInt(lesson.author.id));
+        console.log(parseInt(req.user._id));
+        if (lesson.author != req.user.id)
         {
             ErrorFunction(req, res, 'You are not allowed to edit this post.', 'dashboard');
         }
         else
         {
-            res.render('dashboard/editLP', { message: req.flash('info'), originalLessonPlan: lesson });
+            res.render('dashboard/editLP', { message: req.flash('info'), originalLessonPlan: lesson, mode: editingModes[0] });
+        }
+    })
+});
+
+router.get('/forkEntry', function(req, res) {
+    if (!req.param('id') || req.param('id') == '')
+    {
+        ErrorFunction(req, res, 'No lesson specified', 'dashboard');
+    }
+    
+    LessonPlan.findById(req.param('id'), function (err, lesson) {
+        if (lesson.author == req.user.id)
+        {
+            ErrorFunction(req, res, 'You cannot fork your own post!', 'dashboard');
+        }
+        else
+        {
+            res.render('dashboard/editLP', { message: req.flash('info'), originalLessonPlan: lesson, mode: editingModes[1] });
         }
     })
 });
@@ -388,16 +430,25 @@ router.post('/editLessonPlan/:id', function(req, res) {
         })
 });
 
-router.post('/newlessonplan', function(req, res) {
-    if (!req.user)
-    {
-        ErrorFunction(req, res, "You are not logged in.", '/');
-    }
-    
+var createNewLessonPlan = function (req, res, parentLessonPlan) {
     var lessonPlanLinked;
     var currentTeacher;
+    var lessonPlanCourse = {};
+    var lessonParents;
     
-    var lessonPlanCourse = findCourseFromString(req.body.course);
+    if (parentLessonPlan)
+    {
+        lessonPlanLinked = parentLessonPlan.linkedLesson;
+        lessonParents = parentLessonPlan.parents;
+        lessonParents.push(parentLessonPlan);
+        lessonPlanCourse.grade = parentLessonPlan.course.grade;
+        lessonPlanCourse.subject = parentLessonPlan.course.subject;
+    }
+    else
+    {
+        lessonPlanCourse = findCourseFromString(req.body.course);
+        lessonParents = [];
+    }
     
     var onErrorfn = function (err) {
         ErrorFunction(req, res, 'Creating a new lesson failed!', '/dashboard', err);
@@ -417,11 +468,9 @@ router.post('/newlessonplan', function(req, res) {
         })
     }
     
-    var findLessonPlan = function(next) {
+    var findLinkedLessonPlan = function(next) {
         if (req.body.lessonlink != '')
         {
-            console.log(req.body.lessonlink);
-            console.log(lessonPlanCourse);
             LessonPlan.findLessonPlanWithNameAndCourse(req.body.lessonlink, lessonPlanCourse, function(err, lessonPlan) {
                 if (err)
                 {
@@ -450,8 +499,9 @@ router.post('/newlessonplan', function(req, res) {
         var newLessonPlan = new LessonPlan ({
             title: req.body.title,
             course: lessonPlanCourse,
+            parents: lessonParents,
             linkedLesson: lessonPlanLinked,
-            author: currentTeacher.id,
+            author: currentTeacher,
             duration_in_days: req.body.duration,
             lesson_plan_text: req.body.LessonPlanText,
             lesson_plan_expectations: req.body.expectations,
@@ -468,7 +518,7 @@ router.post('/newlessonplan', function(req, res) {
                     else
                     {
                         //ErrorFunction(req, res, 'Success!', '/dashboard');
-                        res.redirect('viewLesson?id=' + newLessonPlan._id.toHexString());
+                        res.redirect('/viewLesson?id=' + newLessonPlan._id.toHexString());
                     }
                 })
         }
@@ -486,7 +536,43 @@ router.post('/newlessonplan', function(req, res) {
         })
     }
     
-    wait([findTeacher, findLessonPlan], saveLessonPlan, onErrorfn);
+    if (parentLessonPlan)
+    {
+        wait([findTeacher], saveLessonPlan, onErrorfn);
+    }
+    else
+    {
+        wait([findTeacher, findLinkedLessonPlan], saveLessonPlan, onErrorfn);
+    }
+}
+
+router.post('/forkLessonPlan/:id', function(req, res) {
+    if (!req.params.id)
+    {
+        ErrorFunction(req, res, 'No lesson specified', '/dashboard');
+    }
+    
+    LessonPlan.findById({ _id: req.params.id }, function(err, lessonPlan) {
+        if (err)
+        {
+            ErrorFunction(req, res, 'No lesson found to fork.', '/dashboard', err)
+        }
+        else
+        {
+            createNewLessonPlan(req, res, lessonPlan);
+        }
+    })
+});
+
+router.post('/newlessonplan', function(req, res) {
+    if (!req.user)
+    {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+    }
+    else
+    {
+        createNewLessonPlan(req, res);
+    }
 });
 
 router.get('/viewLesson', function (req, res) {
@@ -587,8 +673,7 @@ router.get('/viewLesson', function (req, res) {
 router.get('/newcourse', function(req, res) {
     if (!req.user)
     {
-        req.flash('info', 'No User Specified');
-        res.render('/');
+        ErrorFunction(req, res, 'You are not logged in!', '/', null);
     }
     
     Teacher.findById(req.user.id, function (err, teacher){

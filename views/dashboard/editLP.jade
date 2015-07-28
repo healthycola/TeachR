@@ -9,11 +9,11 @@ block dashcontent
     script(src='/javascripts/textAngular-sanitize.min.js')
     script(src='/javascripts/textAngular.min.js')
     
-    h2.page-header Edit Lesson Plan
+    h2.page-header #{mode.modeText} Lesson Plan
     form.themed(
         name='createLessonPlanForm' 
         method="post", 
-        action="editLessonPlan/" + originalLessonPlan._id
+        action=mode.modeURL + "/" + originalLessonPlan._id
         novalidate 
         ng-app="TextAngularDemo"
         ng-controller="DemoController")
