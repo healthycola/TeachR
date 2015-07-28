@@ -291,7 +291,37 @@ router.post('/updateuserinfo', function(req,res) {
 });
 
 router.get('/dashboard', function(req, res) {
-    res.render('dashboard/main', { message: req.flash('info') });
+    if (!req.user)
+    {
+        ErrorFunction(req, res, 'You are not logged in.', '/', null);
+    }
+    
+    Teacher.findById(req.user.id, function (err, teacher){
+        if (err) {
+            ErrorFunction(req, res, 'Unable to find teacher. Admin is looking into it!', '/', null);
+        }
+        else {
+            LessonPlan.find(
+                { 
+                    author: { $in: teacher.following}
+                })
+                .sort(
+                    {
+                        datefield: -1
+                    })
+                .limit(5)
+                .exec(function(err, lessonPlans) {
+                    if (err)
+                    {
+                        ErrorFunction(req, res, 'Unable to find lesson plans', '/', err);
+                    }
+                    else
+                    {
+                        res.render('dashboard/main', { message: req.flash('info'), followingLessonPlans: lessonPlans });
+                    }
+            })
+        }
+    });
 });
 
 router.get('/newentry', function(req, res) {

@@ -2,4 +2,32 @@ extends layoutdash
 
 block dashcontent
     h2.page-header Dashboard
-    p List recent lesson plans here Testing
+    - each lesson in followingLessonPlans
+            dl.dl-horizontal
+                    dt Title
+                    dd 
+                        a(href='viewLesson?id=' + lesson._id)
+                            span #{lesson.title}
+                    .row
+                        .col-md-6
+                            dt Course
+                            dd #{lesson.course.grade} #{lesson.course.subject}
+                        .col-md-6
+                            dt Duration
+                            - var dayText = (lesson.duration_in_days > 1) ? 'days' : (lesson.duration_in_days == 1) ? 'day' : 'of a day'; 
+                            dd #{lesson.duration_in_days} #{dayText}
+                    if (lesson.parents.length > 0)
+                        dt Forked from
+                        dd 
+                            - for (var parentIndex = 0; parentIndex < lesson.parents.length; ++parentIndex)
+                                a.btn.btn-forkedLessons(type='button'
+                                    href='viewLesson?id=' + lesson.parents[parentIndex]) #{parentIndex + 1}
+                                span 
+                    dt Expectations
+                    dd #{lesson.lesson_plan_expectations}
+                    dt Actions
+                    dd
+                        a.btn.btn-primary(type='button'
+                            href='forkEntry?id=' + lesson.id) Fork
+    else
+        span No lessons to show!
