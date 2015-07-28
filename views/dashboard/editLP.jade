@@ -57,7 +57,7 @@ block dashcontent
                         text-angular 
                         ng-model="htmlContent" 
                         name="LessonPlanText" 
-                        ta-toolbar="[['h1', 'h2', 'h3', 'pre', 'quote', 'justifyLeft', 'justifyCenter', 'justifyRight', 'indent', 'outdent'],['bold', 'italics', 'underline', 'strikeThrough', 'ul', 'ol', 'redo', 'undo', 'clear'],['html', 'insertImage','insertLink', 'insertVideo'], ['wordcount']]"
+                        ta-toolbar="[['h1', 'h2', 'h3', 'pre', 'quote', 'indent', 'outdent'],['bold', 'italics', 'underline', 'strikeThrough', 'ul', 'ol', 'redo', 'undo', 'clear'],['html', 'insertImage','insertLink', 'insertVideo'], ['wordcount']]"
                         ta-toolbar-class="btn-toolbar" 
                         ta-toolbar-group-class="btn-group" 
                         ta-toolbar-button-class="btn btn-default" 
@@ -111,9 +111,9 @@ block dashcontent
                 }
             angular.module("TextAngularDemo", ['textAngular']).controller("DemoController", DemoController);
             function DemoController($scope) {
-                $scope.originalText = stripHTML(data.lesson_plan_text);
+                $scope.originalText = data.lesson_plan_text;
                 $scope.originalExpecatations = data.lesson_plan_expectations;
-                $scope.htmlContent = $scope.originalText;
+                $scope.htmlContent = data.lesson_plan_text;
                 $scope.title = data.title;
                 $scope.duration = data.duration_in_days;
                 $scope.expectations = data.lesson_plan_expectations;
@@ -122,7 +122,7 @@ block dashcontent
                 
                 
                 $scope.change = function() {
-                  $scope.lessonPlanTextDiff = diffString($scope.originalText, stripHTML($scope.htmlContent));
+                  $scope.lessonPlanTextDiff = diffString($scope.originalText, $scope.htmlContent);
                 };
                 
                 $scope.changeExpectations = function() {

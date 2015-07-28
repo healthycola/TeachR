@@ -9,6 +9,13 @@ block dashcontent
                     dd 
                         a(href='viewLesson?id=' + lesson._id)
                             span #{lesson.title}
+                    - if (lesson.date)
+                        dt Created on
+                        - var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+                        - var month = monthNames[lesson.date.getUTCMonth()];
+                        - var day = lesson.date.getDate();
+                        - var year = lesson.date.getFullYear();
+                        dd #{month} #{day}, #{year}
                     .row
                         .col-md-6
                             dt Course

@@ -11,7 +11,8 @@ var Teacher = new Schema({
     lessonPlans: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }],
     courses: [{ grade: Number, subject: String }],
     following: [{ type: Schema.Types.ObjectId, ref: 'Teacher' }],
-    followers: [{ type: Schema.Types.ObjectId, ref: 'Teacher' }]
+    followers: [{ type: Schema.Types.ObjectId, ref: 'Teacher' }],
+    joiningDate: Date
 });
 
 Teacher.methods.addlessonPlan = function(lessonPlan, cb) {

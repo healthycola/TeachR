@@ -5,46 +5,47 @@ var LessonPlan = require('../models/lessonplan');
 var router = express.Router();
 
 // Global functions
-var wait = function(callbacks, done, onError) {
-   var counter = callbacks.length;
-   var error = null;
-   var next = function(err) {
-      if (err) {
-          // There is an error in the wait functions, abort.
-          //This needs to be an abort function. (i.e. no next, and must render/redirect)
-          error = err;
-          onError(err);
-      }
-      
-      if(--counter == 0 && !error) {
-         done();
-      }
-   };
-   
-   for(var i = 0; i < callbacks.length; i++) {
-      callbacks[i](next);
-   }
+var wait = function (callbacks, done, onError) {
+    var counter = callbacks.length;
+    var error = null;
+    var next = function (err) {
+        if (err) {
+            // There is an error in the wait functions, abort.
+            //This needs to be an abort function. (i.e. no next, and must render/redirect)
+            error = err;
+            onError(err);
+        }
+
+        if (--counter == 0 && !error) {
+            done();
+        }
+    };
+
+    for (var i = 0; i < callbacks.length; i++) {
+        callbacks[i](next);
+    }
 }
 
-function findCourseIndex(courseArray, grade, subject)
-{
+function findCourseIndex(courseArray, grade, subject) {
     var courseIndex = -1;
-    courseArray.map(function(obj, index) {
-        if (obj.grade == grade && obj.subject.toLowerCase() == subject.toLowerCase())
-        {
+    courseArray.map(function (obj, index) {
+        if (obj.grade == grade && obj.subject.toLowerCase() == subject.toLowerCase()) {
             courseIndex = index;
         }
     })
-    
+
     return courseIndex;
+}
+
+function areCoursesSame(course1, course2) {
+    return (course1.grade == course2.grade && course1.subject == course2.subject)
 }
 
 function findCourseFromString(stringifiedCourse) {
     var tokens = stringifiedCourse.split(' ');
     
     // if the format is "1 Math"
-    if (!isNaN(tokens[0]))
-    {
+    if (!isNaN(tokens[0])) {
         return {
             grade: parseInt(tokens[0], 10),
             subject: tokens[1]
@@ -52,42 +53,36 @@ function findCourseFromString(stringifiedCourse) {
     }
     
     // if the format is "Grade 1 Math"
-    else if (tokens[0].toLowerCase() == 'grade' && !isNaN(tokens[1]))
-    {
+    else if (tokens[0].toLowerCase() == 'grade' && !isNaN(tokens[1])) {
         //concatenate all strings after token[2]
         var subject = '';
-        for (var i = 2; i < tokens.length - 1; ++i)
-        {
+        for (var i = 2; i < tokens.length - 1; ++i) {
             subject += tokens[i] + ' ';
         }
-        
+
         subject += tokens[tokens.length - 1];
-        
+
         console.log(subject);
         return {
             grade: parseInt(tokens[1], 10),
             subject: subject
         };
     }
-    
-    else 
-    {
+
+    else {
         return null;
     }
 }
 
-function ErrorFunction(req, res, flashMessage, redirectPath, err)
-{
-    if (!err)
-    {
+function ErrorFunction(req, res, flashMessage, redirectPath, err) {
+    if (!err) {
         console.log(flashMessage);
     }
-    else
-    {
+    else {
         console.log(flashMessage)
         console.log(err);
     }
-    
+
     req.flash('info', flashMessage);
     res.redirect(redirectPath);
 } 
@@ -100,24 +95,25 @@ router.get('/register', function(req, res) {
     res.render('user/register', { title: 'Add New User', message: req.flash('info')  });
 });
 
-router.post('/register', function(req, res) {
+router.post('/register', function (req, res) {
     Teacher.register(
         new Teacher(
-            { 
+            {
                 name: req.body.name,
                 school: req.body.school,
                 email: req.body.email,
                 username: req.body.username,
+                joiningDate: new Date()
             }
             ),
         req.body.password,
-        function(err, teacher) {
+        function (err, teacher) {
             if (err) {
                 ErrorFunction(req, res, "Cannot register :(, We're working on it.", '/register', err);
             }
             
             // Log the user in
-            passport.authenticate('local')(req, res, function() {
+            passport.authenticate('local')(req, res, function () {
                 res.redirect('/');
             });
         });
@@ -140,8 +136,8 @@ router.get('/logout', function(req, res) {
     res.redirect('/');
 });
 
-router.get('/myfriends', function(req,res) {
-    Teacher.findById(req.user.id, function (err, teacher){
+router.get('/myfriends', function (req, res) {
+    Teacher.findById(req.user.id, function (err, teacher) {
         if (err) {
             console.log('finding user failed');
             req.flash('info', 'Finding user failed');
@@ -151,58 +147,53 @@ router.get('/myfriends', function(req,res) {
             var onErrorfn = function (err) {
                 ErrorFunction(req, res, 'Cannot find your friends' + err, '/userinfo?id=' + req.user._id.toHexString(), err);
             }
-            
+
             var _following;
             var _followers;
-            var findFollowings = function(next) {
-                Teacher.find({ 
-                    _id: { $in: teacher.following}
+            var findFollowings = function (next) {
+                Teacher.find({
+                    _id: { $in: teacher.following }
                 }, function (err, following) {
-                    if (err)
-                    {
+                    if (err) {
                         next("Couldn't find any of your following" + err);
                     }
-                    else
-                    {
+                    else {
                         _following = following;
                         next();
                     }
                 });
             }
-            
-            var findFollowers = function(next) {
-                Teacher.find({ 
-                    _id: { $in: teacher.followers}
+
+            var findFollowers = function (next) {
+                Teacher.find({
+                    _id: { $in: teacher.followers }
                 }, function (err, followers) {
-                    if (err)
-                    {
+                    if (err) {
                         next("Couldn't find any of your followers" + err)
                     }
-                    else
-                    {
+                    else {
                         _followers = followers;
                         next();
                     }
                 });
             }
-            
+
             var viewPage = function () {
-                res.render('user/myfriends', { message: req.flash('info') , myfollowers: _followers, myfollowing: _following });
+                res.render('user/myfriends', { message: req.flash('info'), myfollowers: _followers, myfollowing: _following });
             }
-            
+
             wait([findFollowers, findFollowings], viewPage, onErrorfn);
         }
     });
 });
 
-router.get('/userinfo', function(req,res) {
-    if (!req.param('id') || req.param('id') == '')
-    {
+router.get('/userinfo', function (req, res) {
+    if (!req.param('id') || req.param('id') == '') {
         req.flash('info', 'No User Specified');
         res.render('/');
     }
-    
-    Teacher.findById(req.param("id"), function (err, teacher){
+
+    Teacher.findById(req.param("id"), function (err, teacher) {
         if (err) {
             req.flash('info', 'Finding user failed');
             res.render('/');
@@ -213,38 +204,32 @@ router.get('/userinfo', function(req,res) {
     });
 });
 
-router.get('/follow', function(req,res) {
-    if (!req.param('id') || req.param('id') == '')
-    {
+router.get('/follow', function (req, res) {
+    if (!req.param('id') || req.param('id') == '') {
         ErrorFunction(req, res, 'No User Specified', '/');
     }
-    
-    Teacher.FollowTeacher(req.user.id, req.param("id"), function(sourceUser, destUser, err){
-        if (err)
-        {
+
+    Teacher.FollowTeacher(req.user.id, req.param("id"), function (sourceUser, destUser, err) {
+        if (err) {
             ErrorFunction(req, res, 'Following this teacher failed', 'myfriends', err);
         }
-        else
-        {
+        else {
             req.flash('info', 'Success!');
             res.redirect('myfriends');
         }
     });
 });
 
-router.get('/unfollow', function(req,res) {
-    if (!req.param('id') || req.param('id') == '')
-    {
+router.get('/unfollow', function (req, res) {
+    if (!req.param('id') || req.param('id') == '') {
         ErrorFunction(req, res, 'No user specified', 'myfriends');
     }
-    
-    Teacher.UnfollowTeacher(req.user.id, req.param("id"), function(sourceUser, destUser, err){
-        if (err)
-        {
+
+    Teacher.UnfollowTeacher(req.user.id, req.param("id"), function (sourceUser, destUser, err) {
+        if (err) {
             ErrorFunction(req, res, 'Unfollowing this teacher failed', 'myfriends', err);
         }
-        else
-        {
+        else {
             req.flash('info', 'Success!');
             res.redirect('myfriends');
         }
@@ -256,70 +241,63 @@ router.get('/updateuserinfo', function(req,res) {
 });
 
 
-router.post('/updateuserinfo', function(req,res) {
-    if (!req.user)
-    {
+router.post('/updateuserinfo', function (req, res) {
+    if (!req.user) {
         ErrorFunction(req, res, "You are not logged in.", '/');
     }
-    
-    if (req.user)
-    {
+
+    if (req.user) {
         console.log(req);
         var _name = (req.body.name) ? req.body.name : req.user.name;
         var _school = (req.body.school) ? req.body.school : req.user.school;
         var _email = (req.body.email) ? req.body.email : req.user.email;
-        
-        Teacher.findById(req.user.id, function (err, teacher){
-            if (err)
-            {
+
+        Teacher.findById(req.user.id, function (err, teacher) {
+            if (err) {
                 ErrorFunction(req, res, "Could not update user", '/updateuserinfo', err);
             }
-            
+
             teacher.name = _name;
             teacher.school = _school;
             teacher.email = _email;
-            
-            teacher.save( function(err){
+
+            teacher.save(function (err) {
                 res.redirect('userinfo?id=' + req.user._id.toHexString());
             });
         });
     }
-    else
-    {
-        
+    else {
+
     }
 });
 
-router.get('/dashboard', function(req, res) {
-    if (!req.user)
-    {
+router.get('/dashboard', function (req, res) {
+    if (!req.user) {
         ErrorFunction(req, res, 'You are not logged in.', '/', null);
     }
-    
-    Teacher.findById(req.user.id, function (err, teacher){
+
+    Teacher.findById(req.user.id, function (err, teacher) {
         if (err) {
             ErrorFunction(req, res, 'Unable to find teacher. Admin is looking into it!', '/', null);
         }
         else {
             LessonPlan.find(
-                { 
-                    author: { $in: teacher.following}
+                {
+                    author: { $in: teacher.following }
                 })
                 .sort(
                     {
                         datefield: -1
                     })
                 .limit(5)
-                .exec(function(err, lessonPlans) {
-                    if (err)
-                    {
+                .exec(function (err, lessonPlans) {
+                    if (err) {
                         ErrorFunction(req, res, 'Unable to find lesson plans', '/', err);
                     }
-                    else
-                    {
+                    else {
                         res.render('dashboard/main', { message: req.flash('info'), followingLessonPlans: lessonPlans });
                     }
-            })
+                })
         }
     });
 });
@@ -396,40 +374,55 @@ var editingModes = [
     }
 ]
 
-router.get('/editEntry', function(req, res) {
-    if (!req.param('id') || req.param('id') == '')
-    {
+router.get('/editEntry', function (req, res) {
+    if (!req.param('id') || req.param('id') == '') {
         ErrorFunction(req, res, 'No lesson specified', 'dashboard');
     }
-    
+
     LessonPlan.findById(req.param('id'), function (err, lesson) {
         console.log(parseInt(lesson.author.id));
         console.log(parseInt(req.user._id));
-        if (lesson.author != req.user.id)
-        {
+        if (lesson.author != req.user.id) {
             ErrorFunction(req, res, 'You are not allowed to edit this post.', 'dashboard');
         }
-        else
-        {
+        else {
             res.render('dashboard/editLP', { message: req.flash('info'), originalLessonPlan: lesson, mode: editingModes[0] });
         }
     })
 });
 
-router.get('/forkEntry', function(req, res) {
-    if (!req.param('id') || req.param('id') == '')
-    {
+router.get('/forkEntry', function (req, res) {
+    if (!req.param('id') || req.param('id') == '') {
         ErrorFunction(req, res, 'No lesson specified', 'dashboard');
     }
-    
+
     LessonPlan.findById(req.param('id'), function (err, lesson) {
-        if (lesson.author == req.user.id)
-        {
+        if (lesson.author == req.user.id) {
             ErrorFunction(req, res, 'You cannot fork your own post!', 'dashboard');
         }
-        else
-        {
-            res.render('dashboard/editLP', { message: req.flash('info'), originalLessonPlan: lesson, mode: editingModes[1] });
+        else {
+            Teacher.findById(req.user.id, function (err, teacher) {
+                if (err) {
+                    ErrorFunction(req, res, 'No user found!', 'dashboard');
+                }
+                else {
+                    var isTeacherEnrolledInCourse = false;
+
+                    for (var i = 0; i < teacher.courses.length; ++i) {
+                        if (areCoursesSame(teacher.courses[i], lesson.course)) {
+                            isTeacherEnrolledInCourse = true;
+                            break;
+                        }
+                    }
+
+                    if (isTeacherEnrolledInCourse) {
+                        res.render('dashboard/editLP', { message: req.flash('info'), originalLessonPlan: lesson, mode: editingModes[1] });
+                    }
+                    else {
+                        ErrorFunction(req, res, 'You are not enrolled in the course for this fork to happen. Enroll in Grade ' + lesson.course.grade + ' ' + lesson.course.subject, 'newcourse', null);
+                    }
+                }
+            })
         }
     })
 });
@@ -465,68 +458,59 @@ var createNewLessonPlan = function (req, res, parentLessonPlan) {
     var currentTeacher;
     var lessonPlanCourse = {};
     var lessonParents;
-    
-    if (parentLessonPlan)
-    {
+
+    if (parentLessonPlan) {
         lessonPlanLinked = parentLessonPlan.linkedLesson;
         lessonParents = parentLessonPlan.parents;
         lessonParents.push(parentLessonPlan);
         lessonPlanCourse.grade = parentLessonPlan.course.grade;
         lessonPlanCourse.subject = parentLessonPlan.course.subject;
     }
-    else
-    {
+    else {
         lessonPlanCourse = findCourseFromString(req.body.course);
         lessonParents = [];
     }
-    
+
     var onErrorfn = function (err) {
         ErrorFunction(req, res, 'Creating a new lesson failed!', '/dashboard', err);
     }
-    
-    var findTeacher = function(next) {
-        Teacher.findById(req.user.id, function (err, teacher){
-            if (err)
-            {
+
+    var findTeacher = function (next) {
+        Teacher.findById(req.user.id, function (err, teacher) {
+            if (err) {
                 next('Could not find teacher' + err);
             }
-            else
-            {
+            else {
                 currentTeacher = teacher;
                 next();
             }
         })
     }
-    
-    var findLinkedLessonPlan = function(next) {
-        if (req.body.lessonlink != '')
-        {
-            LessonPlan.findLessonPlanWithNameAndCourse(req.body.lessonlink, lessonPlanCourse, function(err, lessonPlan) {
-                if (err)
-                {
+
+    var findLinkedLessonPlan = function (next) {
+        if (req.body.lessonlink != '') {
+            LessonPlan.findLessonPlanWithNameAndCourse(req.body.lessonlink, lessonPlanCourse, function (err, lessonPlan) {
+                if (err) {
                     next('Could not find linkedLesson' + err);
                 }
-                else
-                {
+                else {
                     lessonPlanLinked = lessonPlan[0];
-                    next(); 
+                    next();
                 }
             })
         }
-        else
-        {
+        else {
             lessonPlanLinked = null;
             next();
         }
     }
-    
-    var saveLessonPlan = function () {  
-        if (!lessonPlanCourse)
-        {
+
+    var saveLessonPlan = function () {
+        if (!lessonPlanCourse) {
             onErrorfn("Unable to find course linked to this lesson");
         }
-        
-        var newLessonPlan = new LessonPlan ({
+
+        var newLessonPlan = new LessonPlan({
             title: req.body.title,
             course: lessonPlanCourse,
             parents: lessonParents,
@@ -536,177 +520,154 @@ var createNewLessonPlan = function (req, res, parentLessonPlan) {
             lesson_plan_text: req.body.LessonPlanText,
             lesson_plan_expectations: req.body.expectations,
             number_of_votes: 0,
-            average_rating: 0
+            average_rating: 0,
+            date: new Date()
         })
-        
-        var addLessonPlanToTeacher = function() {
-            currentTeacher.addlessonPlan(newLessonPlan, function(err) {
-                    if (err)
-                    {
-                        onErrorfn('Could not add lesson to teacher' + err);
-                    }
-                    else
-                    {
-                        //ErrorFunction(req, res, 'Success!', '/dashboard');
-                        res.redirect('/viewLesson?id=' + newLessonPlan._id.toHexString());
-                    }
-                })
+
+        var addLessonPlanToTeacher = function () {
+            currentTeacher.addlessonPlan(newLessonPlan, function (err) {
+                if (err) {
+                    onErrorfn('Could not add lesson to teacher' + err);
+                }
+                else {
+                    //ErrorFunction(req, res, 'Success!', '/dashboard');
+                    res.redirect('/viewLesson?id=' + newLessonPlan._id.toHexString());
+                }
+            })
         }
 
         newLessonPlan.save(function (err) {
-            if (err)
-            {
+            if (err) {
                 onErrorfn('Could not save lesson' + err);
             }
-            else
-            {
+            else {
                 console.log('here');
                 addLessonPlanToTeacher();
-            }  
+            }
         })
     }
-    
-    if (parentLessonPlan)
-    {
+
+    if (parentLessonPlan) {
         wait([findTeacher], saveLessonPlan, onErrorfn);
     }
-    else
-    {
+    else {
         wait([findTeacher, findLinkedLessonPlan], saveLessonPlan, onErrorfn);
     }
 }
 
-router.post('/forkLessonPlan/:id', function(req, res) {
-    if (!req.params.id)
-    {
+router.post('/forkLessonPlan/:id', function (req, res) {
+    if (!req.params.id) {
         ErrorFunction(req, res, 'No lesson specified', '/dashboard');
     }
-    
-    LessonPlan.findById({ _id: req.params.id }, function(err, lessonPlan) {
-        if (err)
-        {
+
+    LessonPlan.findById({ _id: req.params.id }, function (err, lessonPlan) {
+        if (err) {
             ErrorFunction(req, res, 'No lesson found to fork.', '/dashboard', err)
         }
-        else
-        {
+        else {
             createNewLessonPlan(req, res, lessonPlan);
         }
     })
 });
 
-router.post('/newlessonplan', function(req, res) {
-    if (!req.user)
-    {
+router.post('/newlessonplan', function (req, res) {
+    if (!req.user) {
         ErrorFunction(req, res, "You are not logged in.", '/');
     }
-    else
-    {
+    else {
         createNewLessonPlan(req, res);
     }
 });
 
 router.get('/viewLesson', function (req, res) {
-    if (!req.param('id') || req.param('id') == '')
-    {
+    if (!req.param('id') || req.param('id') == '') {
         ErrorFunction(req, res, 'No Lesson Specified', '/dashboard', null);
     }
 
     var onErrorfn = function (err) {
         ErrorFunction(req, res, 'Viewing this lesson failed!', '/dashboard', err);
     }
-    
-    LessonPlan.findById(req.param('id'), function(err, lessonPlan) {
-        if (err)
-        {
+
+    LessonPlan.findById(req.param('id'), function (err, lessonPlan) {
+        if (err) {
             onErrorfn('No Lesson Found' + err);
         }
-        else
-        {
+        else {
             requestedLessonPlan = lessonPlan;
             teacherID = lessonPlan.author;
             var linkedlessonID = null;
-            if (lessonPlan.linkedLesson != null)
-            {
+            if (lessonPlan.linkedLesson != null) {
                 linkedlessonID = lessonPlan.linkedLesson;
             }
-            else
-            {
+            else {
                 linkedlessonID = '';
             }
-                
+
             var teacherID;
             var teacherName;
             var linkedLessonTitle;
-            
+
             var requestedLessonPlan;
             
             // Need to get the lesson, then associated course, then associated linked lesson, then associated author
-            var findTeacher = function(next) {
+            var findTeacher = function (next) {
                 console.log('Teacher: ' + teacherID);
-                Teacher.findById(teacherID, function (err, teacher){
-                    if (err || !teacher)
-                    {
+                Teacher.findById(teacherID, function (err, teacher) {
+                    if (err || !teacher) {
                         next('Could not find teacher' + err);
                     }
-                    else
-                    {
+                    else {
                         teacherName = teacher.name;
                         next();
                     }
                 })
             }
-            
-            var findLinkedLessonPlan = function(next) {
-                if (linkedlessonID && linkedlessonID != '')
-                {
-                    LessonPlan.findById(linkedlessonID, function(err, linkedLessonPlan) {
-                        if (err)
-                        {
+
+            var findLinkedLessonPlan = function (next) {
+                if (linkedlessonID && linkedlessonID != '') {
+                    LessonPlan.findById(linkedlessonID, function (err, linkedLessonPlan) {
+                        if (err) {
                             next('Could not find Linked Lesson' + err);
                         }
-                        else
-                        {
+                        else {
                             linkedLessonTitle = linkedLessonPlan.title;
-                            next(); 
+                            next();
                         }
                     })
                 }
-                else
-                {
+                else {
                     linkedLessonTitle = '';
                     next();
                 }
             }
-            
-            var populateLessonPlanView = function() {
+
+            var populateLessonPlanView = function () {
                 var lessonPlanViewObject = {}
                 lessonPlanViewObject.title = requestedLessonPlan.title;
                 lessonPlanViewObject.grade = requestedLessonPlan.course.grade;
                 lessonPlanViewObject.subject = requestedLessonPlan.course.subject;
                 lessonPlanViewObject.duration = requestedLessonPlan.duration_in_days;
-                if (linkedlessonID != '')
-                {
+                if (linkedlessonID != '') {
                     lessonPlanViewObject.linkedLessonTitle = linkedLessonTitle;
                 }
                 lessonPlanViewObject.author = teacherName;
                 lessonPlanViewObject.text = requestedLessonPlan.lesson_plan_text;
                 lessonPlanViewObject.expectations = requestedLessonPlan.lesson_plan_expectations;
-                
-                res.render('dashboard/viewLesson', {lessonPlan: lessonPlanViewObject});
+
+                res.render('dashboard/viewLesson', { lessonPlan: lessonPlanViewObject });
             }
-            
+
             wait([findTeacher, findLinkedLessonPlan], populateLessonPlanView, onErrorfn);
         }
     })
 })
 
-router.get('/newcourse', function(req, res) {
-    if (!req.user)
-    {
+router.get('/newcourse', function (req, res) {
+    if (!req.user) {
         ErrorFunction(req, res, 'You are not logged in!', '/', null);
     }
-    
-    Teacher.findById(req.user.id, function (err, teacher){
+
+    Teacher.findById(req.user.id, function (err, teacher) {
         if (err) {
             req.flash('info', 'Finding user failed');
             res.render('/');
@@ -717,185 +678,160 @@ router.get('/newcourse', function(req, res) {
     });
 });
 
-router.post('/createcourse', function(req, res) {
-    if (!req.user)
-    {
+router.post('/createcourse', function (req, res) {
+    if (!req.user) {
         ErrorFunction(req, res, "You are not logged in.", '/');
     }
-    
-    Teacher.findById(req.user.id, function (err, teacher){
-            if (err)
-            {
-                req.flash('info', 'Could not find teacher');
-                res.redirect('newcourse');
+
+    Teacher.findById(req.user.id, function (err, teacher) {
+        if (err) {
+            req.flash('info', 'Could not find teacher');
+            res.redirect('newcourse');
+        }
+        else {
+            var courseIndex = findCourseIndex(teacher.courses, req.body.courseGrade, req.body.courseSubject);
+            if (courseIndex == -1) {
+                var course = { grade: req.body.courseGrade, subject: req.body.courseSubject };
+                teacher.courses.push(course);
+
+                teacher.save(function (err) {
+                    if (err) {
+                        req.flash('info', 'Adding this course failed!');
+                    }
+                    else {
+                        req.flash('info', 'Success!');
+                    }
+                })
             }
-            else
-            {
-                var courseIndex = findCourseIndex(teacher.courses, req.body.courseGrade, req.body.courseSubject);
-                if (courseIndex == -1)
-                {
-                    var course = { grade: req.body.courseGrade, subject: req.body.courseSubject };
-                    teacher.courses.push(course);
-                    
-                    teacher.save(function(err) {
-                        if (err)
-                        {
-                            req.flash('info', 'Adding this course failed!');
-                        }
-                        else
-                        {
-                            req.flash('info', 'Success!');
-                        }
-                    })
-                }
-                else
-                {
-                    req.flash('info', 'Thise course already exists in your enrolled courses!');
-                }
-                
-                res.redirect('newcourse');
+            else {
+                req.flash('info', 'Thise course already exists in your enrolled courses!');
             }
+
+            res.redirect('newcourse');
+        }
     });
 });
 
-router.post('/removecourse', function(req, res) {
-    if (!req.user)
-    {
+router.post('/removecourse', function (req, res) {
+    if (!req.user) {
         ErrorFunction(req, res, "You are not logged in.", '/');
     }
-    
-    Teacher.findById(req.user.id, function (err, teacher){
-            if (err)
-            {
-                ErrorFunction(req, res, "No teacher found.", "newcourse", err);
+
+    Teacher.findById(req.user.id, function (err, teacher) {
+        if (err) {
+            ErrorFunction(req, res, "No teacher found.", "newcourse", err);
+        }
+        else {
+            var courseToRemove = findCourseFromString(req.body.course);
+
+            if (!courseToRemove) {
+                ErrorFunction(req, res, "No such course. Please contact admin.", "newcourse", "bad string format");
             }
-            else
-            {
-                var courseToRemove = findCourseFromString(req.body.course);
-                
-                if (!courseToRemove)
-                {
-                    ErrorFunction(req, res, "No such course. Please contact admin.", "newcourse", "bad string format");
-                }
-                
-                var courseIndex = findCourseIndex(teacher.courses, courseToRemove.grade, courseToRemove.subject);
-                if (courseIndex != -1)
-                {
-                    teacher.courses.splice(courseIndex, 1);
-                    
-                    teacher.save(function(err) {
-                        if (err)
-                        {
-                            ErrorFunction(req, res, 'Removing this course failed!', 'newcourse', err);
-                        }
-                        else
-                        {
-                            req.flash('info', 'Success!');
-                            res.redirect('newcourse');
-                        }
-                    })
-                }
-                else
-                {
-                    ErrorFunction(req, res, 'You are not enrolled in this course', 'newcourse');
-                }
+
+            var courseIndex = findCourseIndex(teacher.courses, courseToRemove.grade, courseToRemove.subject);
+            if (courseIndex != -1) {
+                teacher.courses.splice(courseIndex, 1);
+
+                teacher.save(function (err) {
+                    if (err) {
+                        ErrorFunction(req, res, 'Removing this course failed!', 'newcourse', err);
+                    }
+                    else {
+                        req.flash('info', 'Success!');
+                        res.redirect('newcourse');
+                    }
+                })
             }
+            else {
+                ErrorFunction(req, res, 'You are not enrolled in this course', 'newcourse');
+            }
+        }
     });
 })
 
 router.get('/viewAllLessons', function (req, res) {
-    if (!req.param('id') || req.param('id') == '')
-    {
+    if (!req.param('id') || req.param('id') == '') {
         ErrorFunction(req, res, 'No user Specified', '/dashboard', null);
     }
-    
-    Teacher.getAllLessonPlans(req.param('id'), function(err, teacher) {
-        if (err || !teacher)
-        {
+
+    Teacher.getAllLessonPlans(req.param('id'), function (err, teacher) {
+        if (err || !teacher) {
             ErrorFunction(req, res, 'No user found', '/dashboard', err);
         }
-        
-        LessonPlan.findAllLessons(teacher.lessonPlans, function(err, lessonPlans) {
-            if (err)
-            {
+
+        LessonPlan.findAllLessons(teacher.lessonPlans, function (err, lessonPlans) {
+            if (err) {
                 ErrorFunction(req, res, 'No lessons found', '/dashboard', err);
             }
-            
+
             res.render('dashboard/viewAllLessonPlans', { requestedLessonPlans: lessonPlans, teacherName: teacher.name });
         })
     })
 })
 
 router.post('/removeLesson', function (req, res) {
-    if (!req.user)
-    {
+    if (!req.user) {
         ErrorFunction(req, res, "You are not logged in.", '/');
     }
-    
-    if (!req.body.lessonID || req.body.lessonID == '')
-    {
+
+    if (!req.body.lessonID || req.body.lessonID == '') {
         ErrorFunction(req, res, 'No Lesson to remove', '/dashboard', null);
     }
     
     //Get the lesson, then get the associated teacher and course. If the lesson has children, it cannot be deleted 
     LessonPlan.findById(req.body.lessonID, function (err, lesson) {
-        if (err)
-        {
+        if (err) {
             ErrorFunction(req, res, 'No lesson found', '/dashboard', err);
         }
-        
-        if (!lesson) 
-        {
+
+        if (!lesson) {
             ErrorFunction(req, res, 'No lesson found', '/dashboard', 'ID: ' + req.body.lessonID);
         }
-        
+
         var onErrorfn = function (err) {
             ErrorFunction(req, res, 'Removing this lesson failed!', '/dashboard', err);
         }
-    
+
         LessonPlan.find({
-                parents: lesson._id
-            }, function(err, children) {
-                if (err)
-                {
-                    onErrorfn('Couldn not find parents', err);
+            parents: lesson._id
+        }, function (err, children) {
+            if (err) {
+                onErrorfn('Couldn not find parents', err);
+            }
+            else {
+                if (children.length > 0) {
+                    onErrorfn('Cannot remove this lesson since this is a parent of other lessons. Sorry!');
                 }
                 else {
-                    if (children.length > 0) {
-                        onErrorfn('Cannot remove this lesson since this is a parent of other lessons. Sorry!');
+                    // Need to get the lesson, then associated course, then associated linked lesson, then associated author
+                    var findTeacher = function (next) {
+                        Teacher.removeLessonFromTeacherID(lesson.author, lesson, function (err) {
+                            if (err) {
+                                next('Could not find teacher' + err);
+                            }
+                            else {
+                                next();
+                            }
+                        })
                     }
-                    else {
-                        // Need to get the lesson, then associated course, then associated linked lesson, then associated author
-                        var findTeacher = function(next) {
-                            Teacher.removeLessonFromTeacherID(lesson.author, lesson, function (err){
-                                if (err)
-                                {
-                                    next('Could not find teacher' + err);
-                                }
-                                else
-                                {
-                                    next();
-                                }
-                            })
-                        }
-                        
-                        var removeLesson = function () {
-                            LessonPlan.remove({ _id: lesson.id }, function(err) {
-                                if (err) {
-                                    onErrorfn('Could not remove lesson' + err);
-                                }
-                                else {
-                                    req.flash('info', 'Success!');
-                                    res.redirect('/viewAllLessons?id=' + req.user.id);
-                                }
-                            });
-                        }
-                        
-                        wait([findTeacher], removeLesson, onErrorfn);
+
+                    var removeLesson = function () {
+                        LessonPlan.remove({ _id: lesson.id }, function (err) {
+                            if (err) {
+                                onErrorfn('Could not remove lesson' + err);
+                            }
+                            else {
+                                req.flash('info', 'Success!');
+                                res.redirect('/viewAllLessons?id=' + req.user.id);
+                            }
+                        });
                     }
+
+                    wait([findTeacher], removeLesson, onErrorfn);
                 }
-            })
-    
+            }
+        })
+
     })
 });
 
