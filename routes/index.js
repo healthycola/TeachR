@@ -649,11 +649,13 @@ router.get('/viewLesson', function (req, res) {
                 if (linkedlessonID != '') {
                     lessonPlanViewObject.linkedLessonTitle = linkedLessonTitle;
                 }
+                lessonPlanViewObject.teacherID = requestedLessonPlan.author;
+                lessonPlanViewObject.lessonID = requestedLessonPlan._id;
                 lessonPlanViewObject.author = teacherName;
                 lessonPlanViewObject.text = requestedLessonPlan.lesson_plan_text;
                 lessonPlanViewObject.expectations = requestedLessonPlan.lesson_plan_expectations;
                 lessonPlanViewObject.votes = requestedLessonPlan.number_of_votes;
-
+                lessonPlanViewObject.parents = requestedLessonPlan.parents;
                 res.render('dashboard/viewLesson', { lessonPlan: lessonPlanViewObject });
             }
 

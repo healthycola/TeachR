@@ -2,30 +2,44 @@ extends layoutdash
 
 block dashcontent
     h2.page-header Lesson Plan
-    dl.dl-horizontal
-            //- if (user && String(requestedteacher._id) == String(user._id))
-            //    .text-right 
-            //        a(href='updateuserinfo')
-            //            i.fa.fa-cogs.fa-fw
-            dt Title
-            dd #{lessonPlan.title}
-            .row
-                .col-md-6
-                    dt Course
-                    dd Grade #{lessonPlan.grade} #{lessonPlan.subject}
-                .col-md-6
-                    dt Votes
-                    dd #{lessonPlan.votes}
-            dt Duration
-            - var dayText = (lessonPlan.duration > 1) ? 'days' : (lessonPlan.duration == 1) ? 'day' : 'of a day';
-            dd #{lessonPlan.duration} #{dayText}
-            - if (lessonPlan.linkedLessonTitle)
-                dt Linked Lesson
-                dd #{lessonPlan.linkedLessonTitle}
-            dt Author 
-            dd #{lessonPlan.author}
-            dt Expectations 
-            dd #{lessonPlan.expectations}
-            dt LessonPlan 
-            dd
-                | !{lessonPlan.text}
+    .row
+        .col-md-12
+            dl.dl-horizontal
+                    //- if (user && String(requestedteacher._id) == String(user._id))
+                    //    .text-right 
+                    //        a(href='updateuserinfo')
+                    //            i.fa.fa-cogs.fa-fw
+                    dt Title
+                    dd #{lessonPlan.title}
+                    .row
+                        .col-md-6
+                            dt Course
+                            dd Grade #{lessonPlan.grade} #{lessonPlan.subject}
+                        .col-md-6
+                            dt Votes
+                            dd #{lessonPlan.votes}
+                    dt Duration
+                    - var dayText = (lessonPlan.duration > 1) ? 'days' : (lessonPlan.duration == 1) ? 'day' : 'of a day';
+                    dd #{lessonPlan.duration} #{dayText}
+                    - if (lessonPlan.linkedLessonTitle)
+                        dt Linked Lesson
+                        dd #{lessonPlan.linkedLessonTitle}
+                    dt Author 
+                    dd #{lessonPlan.author}
+                    dt Expectations 
+                    dd #{lessonPlan.expectations}
+                    dt LessonPlan 
+                    dd
+                        | !{lessonPlan.text}
+    .row
+        .col-md-12.text-right
+            if (user.id == lessonPlan.teacherID)
+                a.btn.btn-primary(type='button'
+                    href='editEntry?id=' + lessonPlan.lessonID) Edit
+                span 
+                | 
+                if (lessonPlan.parents && lessonPlan.parents.length > 0)
+                    a.btn.btn-primary(type='button' href='requestMerge?id=' + lessonPlan.lessonID) Request Merge
+            else
+                a.btn.btn-primary(type='button'
+                    href='forkEntry?id=' + lessonPlan.lessonID) Fork

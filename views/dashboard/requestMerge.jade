@@ -1,31 +1,46 @@
 extends layoutdash
 
 block dashcontent
-    h2.page-header Lesson Plan
-    dl.dl-horizontal
-            //- if (user && String(requestedteacher._id) == String(user._id))
-            //    .text-right 
-            //        a(href='updateuserinfo')
-            //            i.fa.fa-cogs.fa-fw
-            dt Title
-            dd #{lessonPlan.title}
-            .row
-                .col-md-6
+    script(src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js')
+    script(src='/javascripts/angular-route.min.js')
+    script(src='/javascripts/jsdiff.js')
+    
+    h2.page-header Request for Merge
+    .row.merging
+        .col-md-12.text-right
+            != '<del>Theirs</del> <ins>Yours</ins>'
+            p
+    .row.merging
+        .col-md-12
+            dl.dl-horizontal(ng-app="MergeLessonPlans" ng-controller="mergeController")
+                    //- if (user && String(requestedteacher._id) == String(user._id))
+                    //    .text-right 
+                    //        a(href='updateuserinfo')
+                    //            i.fa.fa-cogs.fa-fw
+                    dt Title
+                    dd(ng-bind-html="mergedLesson.title")
                     dt Course
-                    dd Grade #{lessonPlan.grade} #{lessonPlan.subject}
-                .col-md-6
-                    dt Votes
-                    dd #{lessonPlan.votes}
-            dt Duration
-            - var dayText = (lessonPlan.duration > 1) ? 'days' : (lessonPlan.duration == 1) ? 'day' : 'of a day';
-            dd #{lessonPlan.duration} #{dayText}
-            - if (lessonPlan.linkedLessonTitle)
-                dt Linked Lesson
-                dd #{lessonPlan.linkedLessonTitle}
-            dt Author 
-            dd #{lessonPlan.author}
-            dt Expectations 
-            dd #{lessonPlan.expectations}
-            dt LessonPlan 
-            dd
-                | !{lessonPlan.text}
+                    dd(ng-bind="mergedLesson.course")
+                    dt Duration
+                    dd(ng-bind-html="mergedLesson.duration")
+                    dt Expectations
+                    dd(ng-bind-html="mergedLesson.expectations")
+                    dt Text
+                    dd(ng-bind-html="mergedLesson.text")
+    .row
+        .col-md-12.text-right
+            a.btn.btn-primary(type='button' href='editEntry?id=' + requestForMerge.otherLesson.id) Edit
+            span 
+            | 
+            a.btn.btn-primary(type='button' href='sendMergeRequest?id=' + requestForMerge.otherLesson.id) Send Request
+    script.
+        var data = !{JSON.stringify(requestForMerge)}
+        var myApp =  angular.module('MergeLessonPlans', ['ngRoute']); 
+        myApp.controller('mergeController',['$scope', '$sce', function ($scope, $sce, myAppService) {
+            $scope.mergedLesson = {};
+            $scope.mergedLesson.title = $sce.trustAsHtml(diffString(data.myLesson.title, data.otherLesson.title));
+            $scope.mergedLesson.course = 'Grade ' + data.myLesson.course.grade + ' ' + data.myLesson.course.subject;
+            $scope.mergedLesson.duration = $sce.trustAsHtml(diffString(data.myLesson.duration_in_days.toString(), data.otherLesson.duration_in_days.toString()) + ' days');
+            $scope.mergedLesson.expectations = $sce.trustAsHtml(diffString(data.myLesson.lesson_plan_expectations, data.otherLesson.lesson_plan_expectations));
+            $scope.mergedLesson.text = $sce.trustAsHtml(diffString(data.myLesson.lesson_plan_text, data.otherLesson.lesson_plan_text));
+        }]);
