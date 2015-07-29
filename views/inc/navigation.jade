@@ -8,7 +8,9 @@
                     a.dropdown-toggle(data-toggle='dropdown' href='#')
                         - if (user)
                             i.fa.fa-user.fa-fw
-                            span  #{user.name}
+                            span  #{user.name} 
+                            if (user.requestForMerge.length > 0)
+                                span.badge #{user.requestForMerge.length}
                         - if (!user)
                             i.fa.fa-user.fa-fw
                             span
@@ -19,6 +21,12 @@
                                 a(href="userinfo?id=" + user._id.toHexString())
                                     i.fa.fa-cogs.fa-fw
                                     span  Control Panel
+                            if (user.requestForMerge.length > 0)
+                                li
+                                    a(href="viewMergeRequests")
+                                        i.fa.fa-code-fork
+                                        span  View Requests 
+                                        span.badge #{user.requestForMerge.length}
                             li
                                 a(href='logout')
                                     i.fa.fa-sign-out.fa-fw

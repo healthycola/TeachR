@@ -1060,4 +1060,59 @@ router.get('/requestMerge', function (req, res) {
     })
 })
 
+router.get('/sendMergeRequest', function (req, res) {
+    // TODO: don't send duplicate requests
+    if (!req.user) {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+        return;
+    }
+
+    if (!req.param('id') || req.param('id') == '') {
+        ErrorFunction(req, res, 'No lesson Specified', '/dashboard', null);
+        return;
+    }
+    
+    var requestForMergeObject = {};
+    LessonPlan.findById(req.param('id'), function(err, lesson) {
+        if (err) {
+            ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
+            return;
+        }
+        var lastParent = lesson.parents[lesson.parents.length - 1];
+        
+        LessonPlan.findById(lastParent, function(err, parentLesson) {
+              if (err) {
+                  ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
+                  return;
+              }
+              
+              requestForMergeObject.myLesson = parentLesson;
+              requestForMergeObject.otherLesson = lesson;
+              
+              Teacher.findById(parentLesson.author, function(err, teacher) {
+                  if (err) {
+                      ErrorFunction(req, res, 'Could not send notification', '/dashboard', null);
+                      return;
+                  }
+                  
+                  teacher.requestForMerge.push(requestForMergeObject);
+                  
+                  teacher.save(function(err) {
+                      if (err) {
+                          ErrorFunction(req, res, 'Could not send notification', '/dashboard', null);
+                          return;
+                      }
+                      
+                      req.flash('info', 'Merge Request Sent!');
+                      res.redirect('/requestMerge?id=' + lesson.id);
+                  })
+              })
+        })
+    })
+})
+
+router.get('/viewMergeRequests', function (req, res) {
+    res.render('user/viewMergeRequests');
+})
+
 module.exports = router;
