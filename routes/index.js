@@ -242,8 +242,7 @@ router.get('/updateuserinfo', function(req,res) {
 
 
 router.post('/updateuserinfo', function (req, res) {
-    if (!req.user) {
-        ErrorFunction(req, res, "You are not logged in.", '/');
+    if (!req.user) {        ErrorFunction(req, res, "You are not logged in.", '/');
     }
 
     if (req.user) {
@@ -653,6 +652,7 @@ router.get('/viewLesson', function (req, res) {
                 lessonPlanViewObject.author = teacherName;
                 lessonPlanViewObject.text = requestedLessonPlan.lesson_plan_text;
                 lessonPlanViewObject.expectations = requestedLessonPlan.lesson_plan_expectations;
+                lessonPlanViewObject.votes = requestedLessonPlan.number_of_votes;
 
                 res.render('dashboard/viewLesson', { lessonPlan: lessonPlanViewObject });
             }
@@ -804,7 +804,7 @@ router.post('/removeLesson', function (req, res) {
                 }
                 else {
                     // Need to get the lesson, then associated course, then associated linked lesson, then associated author
-                    var findTeacher = function (next) {
+                    var removeLessonFromTeacher = function (next) {
                         Teacher.removeLessonFromTeacherID(lesson.author, lesson, function (err) {
                             if (err) {
                                 next('Could not find teacher' + err);
@@ -827,7 +827,7 @@ router.post('/removeLesson', function (req, res) {
                         });
                     }
 
-                    wait([findTeacher], removeLesson, onErrorfn);
+                    wait([removeLessonFromTeacher], removeLesson, onErrorfn);
                 }
             }
         })
@@ -837,6 +837,195 @@ router.post('/removeLesson', function (req, res) {
 
 router.get('/test', function (req, res) {
     res.render('test');
+})
+
+router.get('/upvote', function (req, res) {
+    if (!req.user) {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+        return;
+    }
+    
+    if (!req.param('id') || req.param('id') == '') {
+        ErrorFunction(req, res, 'No lesson Specified', '/dashboard', null);
+        return;
+    }
+    
+    var currentTeacher;
+    var upvoteLesson;
+    
+    var onErrorfn = function (error) {
+        res.send({err: 'Removing this lesson failed' + error });
+    }
+    
+    var findTeacher = function (next) {
+        Teacher.findById(req.user.id, function (err, teacher) {
+            if (err) {
+                next('Could not find teacher' + err);
+            }
+            else {
+                currentTeacher = teacher;
+                next();
+            }
+        })
+    }
+    
+    var findLessonPlan = function (next) {
+        LessonPlan.findById(req.param('id'), function (err, lesson) {
+            if (err) {
+                next('Could not find Linked Lesson' + err);
+            }
+            else {
+                upvoteLesson = lesson;
+                next();
+            }
+        })
+    }
+    
+    var upvote = function () {
+        var updateTeacherList = function(next) {
+            currentTeacher.upvote(upvoteLesson);
+            currentTeacher.save(function(err) {
+                if (err) {
+                    next('Could not save the lesson voted on' + err);
+                }
+                else {
+                    next();
+                }
+            })
+        }
+        
+        var updateLessonVote = function (next) {
+            upvoteLesson.number_of_votes++;
+            upvoteLesson.save(function(err) {
+                if (err) {
+                    next('Could not update vote' + err);
+                }
+                else {
+                    next();
+                }
+            })
+        }
+        
+        var sendResponse = function () {
+            res.send({err: null, upvote: true});
+        }
+        
+        if (upvoteLesson.author == currentTeacher.id)
+        {
+            res.send({err: "You can't upvote your own lesson!", downvote: false});
+            return;
+        }
+        
+        for (var i = 0; i < currentTeacher.votedPosts.length; ++i) {
+            if (currentTeacher.votedPosts[i] == upvoteLesson.id) {
+                res.send({err: null, upvote: false});
+                return;
+            }
+        }
+        
+        wait([updateTeacherList, updateLessonVote], sendResponse, onErrorfn);
+    }
+    
+    wait([findTeacher, findLessonPlan], upvote, onErrorfn);
+})
+
+router.get('/downvote', function (req, res) {
+    if (!req.user) {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+        return;
+    }
+    
+    if (!req.param('id') || req.param('id') == '') {
+        ErrorFunction(req, res, 'No lesson Specified', '/dashboard', null);
+        return;
+    }
+    
+    var currentTeacher;
+    var downvotelesson;
+    
+    var onErrorfn = function (error) {
+        res.send({err: 'Removing this lesson failed' + error });
+    }
+    
+    var findTeacher = function (next) {
+        Teacher.findById(req.user.id, function (err, teacher) {
+            if (err) {
+                next('Could not find teacher' + err);
+            }
+            else {
+                currentTeacher = teacher;
+                next();
+            }
+        })
+    }
+    
+    var findLessonPlan = function (next) {
+        LessonPlan.findById(req.param('id'), function (err, lesson) {
+            if (err) {
+                next('Could not find Linked Lesson' + err);
+            }
+            else {
+                downvotelesson = lesson;
+                next();
+            }
+        })
+    }
+    
+    var downvote = function () {
+        var updateTeacherList = function(next) {
+            currentTeacher.downvote(downvotelesson);
+            currentTeacher.save(function(err) {
+                if (err) {
+                    next('Could not save the lesson voted on' + err);
+                }
+                else {
+                    next();
+                }
+            })
+        }
+        
+        var updateLessonVote = function (next) {
+            downvotelesson.number_of_votes--;
+            downvotelesson.save(function(err) {
+                if (err) {
+                    next('Could not update vote' + err);
+                }
+                else {
+                    next();
+                }
+            })
+        }
+        
+        var sendResponse = function () {
+            res.send({err: null, downvote: true});
+        }
+        
+        if (downvotelesson.author == currentTeacher.id)
+        {
+            res.send({err: "You can't downvote your own lesson!", downvote: false});
+            return;
+        }
+        
+        var hasTeacherVoted = false;
+        for (var i = 0; i < currentTeacher.votedPosts.length; ++i) {
+            if (currentTeacher.votedPosts[i] == downvotelesson.id) {
+                //res.send({err: null, upvote: false});
+                hasTeacherVoted = true;
+                break;
+            }
+        }
+        
+        if (!hasTeacherVoted)
+        {
+            res.send({err: null, downvote: false});
+        }
+        else
+        {
+            wait([updateTeacherList, updateLessonVote], sendResponse, onErrorfn);
+        }
+    }
+    
+    wait([findTeacher, findLessonPlan], downvote, onErrorfn);
 })
 
 module.exports = router;

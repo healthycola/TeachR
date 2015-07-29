@@ -1,63 +1,83 @@
 extends layoutdash
 
 block dashcontent
+    script(src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js')
+    script(src='/javascripts/angular-route.min.js')
+    
     h2.page-header Lessons by #{teacherName}
     if requestedLessonPlans.length > 0
-        - each lesson in requestedLessonPlans
-            dl.dl-horizontal
-                .row
-                    .col-md-1
-                        - if (lesson.date)
-                            - var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec" ];
-                            - var month = monthNames[lesson.date.getUTCMonth()];
-                            - var day = lesson.date.getDate();
-                            - var year = lesson.date.getFullYear();
-                            .date
-                                .month #{month}
-                                .day #{day}
-                                .year #{year}
-                    .col-md-11
-                        dt Title
-                        dd 
-                            a(href='viewLesson?id=' + lesson._id)
-                                span #{lesson.title}
-                        - if (lesson.date)
-                            dt Created on
-                            - var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
-                            - var month = monthNames[lesson.date.getUTCMonth()];
-                            - var day = lesson.date.getDate();
-                            - var year = lesson.date.getFullYear();
-                            dd #{month} #{day}, #{year}
+        .row(ng-app="ViewAllLessonPlans" ng-controller="myAppController")
+            .col-md-12
+                - each lesson in requestedLessonPlans
+                    dl.dl-horizontal
                         .row
-                            .col-md-6
-                                dt Course
-                                dd #{lesson.course.grade} #{lesson.course.subject}
-                            .col-md-6
-                                dt Duration
-                                - var dayText = (lesson.duration_in_days > 1) ? 'days' : (lesson.duration_in_days == 1) ? 'day' : 'of a day'; 
-                                dd #{lesson.duration_in_days} #{dayText}
-                        if (lesson.parents.length > 0)
-                            dt Forked from
-                            dd 
-                                - for (var parentIndex = 0; parentIndex < lesson.parents.length; ++parentIndex)
-                                    a.btn.btn-forkedLessons(type='button'
-                                        href='viewLesson?id=' + lesson.parents[parentIndex]) #{parentIndex + 1}
-                                    span 
-                        dt Expectations
-                        dd #{lesson.lesson_plan_expectations}
-                        dt Actions
-                        dd
-                            if (user.id == lesson.author)
-                                a.btn.btn-primary(type='button'
-                                    href='editEntry?id=' + lesson.id) Edit
-                                span 
-                                | 
-                                a.btn.btn-primary(type='button', data-toggle='modal'
-                                    href='#exampleModal'
-                                    data-whatever=lesson.id) delete
-                            else
-                                a.btn.btn-primary(type='button'
-                                    href='forkEntry?id=' + lesson.id) Fork
+                            .col-md-1
+                                - if (lesson.date)
+                                    - var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec" ];
+                                    - var month = monthNames[lesson.date.getUTCMonth()];
+                                    - var day = lesson.date.getDate();
+                                    - var year = lesson.date.getFullYear();
+                                    .date
+                                        .month #{month}
+                                        .day #{day}
+                                        .year #{year}
+                                .voteContainer
+                                    .row
+                                        .col-md-12
+                                            .vote(ng-bind="votes[\'" + lesson.id + "\']")
+                                    .row
+                                        .col-md-12.text-center
+                                            a(ng-click=('upvote(\'' + lesson.id + '\')'))
+                                                i.fa.fa-thumbs-up 
+                                            span |
+                                            a(ng-click=('downvote(\'' + lesson.id + '\')')) 
+                                                i.fa.fa-thumbs-down 
+                            .col-md-11
+                                dt Title
+                                dd 
+                                    a(href='viewLesson?id=' + lesson._id)
+                                        span #{lesson.title}
+                                - if (lesson.date)
+                                    dt Created on
+                                    - var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+                                    - var month = monthNames[lesson.date.getUTCMonth()];
+                                    - var day = lesson.date.getDate();
+                                    - var year = lesson.date.getFullYear();
+                                    dd #{month} #{day}, #{year}
+                                .row
+                                    .col-md-6
+                                        dt Course
+                                        dd #{lesson.course.grade} #{lesson.course.subject}
+                                    .col-md-6
+                                        dt Duration
+                                        - var dayText = (lesson.duration_in_days > 1) ? 'days' : (lesson.duration_in_days == 1) ? 'day' : 'of a day'; 
+                                        dd #{lesson.duration_in_days} #{dayText}
+                                if (lesson.parents.length > 0)
+                                    dt Forked from
+                                    dd 
+                                        - for (var parentIndex = 0; parentIndex < lesson.parents.length; ++parentIndex)
+                                            a.btn.btn-forkedLessons(type='button'
+                                                href='viewLesson?id=' + lesson.parents[parentIndex]) #{parentIndex + 1}
+                                            span 
+                                dt Expectations
+                                dd #{lesson.lesson_plan_expectations}
+                                dt Actions
+                                dd
+                                    if (user.id == lesson.author)
+                                        a.btn.btn-primary(type='button'
+                                            href='editEntry?id=' + lesson.id) Edit
+                                        span 
+                                        | 
+                                        a.btn.btn-primary(type='button', data-toggle='modal'
+                                            href='#exampleModal'
+                                            data-whatever=lesson.id) delete
+                                    else
+                                        a.btn.btn-primary(type='button'
+                                            href='forkEntry?id=' + lesson.id) Fork
+                                        span 
+                                        | 
+                                        a.btn.btn-primary(type='button' 
+                                            ng-click=('upvote(\'' + lesson.id + '\')')) Upvote
     else
         span No lessons to show!
     // Modal
@@ -97,3 +117,32 @@ block dashcontent
                 console.log(modal.find('#lessonID'));
             })
         })
+        
+    script.
+        var data = !{JSON.stringify(requestedLessonPlans)}
+        var myApp =  angular.module('ViewAllLessonPlans', ['ngRoute']); 
+        myApp.controller('myAppController',['$scope', '$http', function ($scope, $http, myAppService) {
+            $scope.lessons = data;
+            $scope.votes = {}
+            for (var i = 0; i < data.length; ++i) {
+                $scope.votes[data[i]._id] = data[i].number_of_votes; 
+            }
+            
+            $scope.upvote = function(lessonID) {
+                $http.get('/upvote?id='+lessonID).then(function(result) { 
+                    if (result.data.upvote)
+                    {
+                        $scope.votes[lessonID]++;
+                    } 
+                });
+            };
+            
+            $scope.downvote = function(lessonID) {
+                $http.get('/downvote?id='+lessonID).then(function(result) { 
+                    if (result.data.downvote)
+                    {
+                        $scope.votes[lessonID]--;
+                    } 
+                });
+            };
+        }]);

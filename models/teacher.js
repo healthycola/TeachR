@@ -12,7 +12,8 @@ var Teacher = new Schema({
     courses: [{ grade: Number, subject: String }],
     following: [{ type: Schema.Types.ObjectId, ref: 'Teacher' }],
     followers: [{ type: Schema.Types.ObjectId, ref: 'Teacher' }],
-    joiningDate: Date
+    joiningDate: Date,
+    votedPosts: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }]
 });
 
 Teacher.methods.addlessonPlan = function(lessonPlan, cb) {
@@ -47,8 +48,6 @@ Teacher.methods.addFollower = function(otherTeacher, cb) {
 };
 
 Teacher.methods.unfollow = function(otherTeacher, cb) {
-  console.log(otherTeacher);
-  console.log(this);
   var index = this.following.indexOf(otherTeacher._id);
   var removed = false;
   while (index >= 0)
@@ -67,6 +66,15 @@ Teacher.methods.unfollow = function(otherTeacher, cb) {
   {
     cb(null); 
   }
+};
+
+Teacher.methods.downvote = function(lesson, cb) {
+  var index = this.votedPosts.indexOf(lesson._id);
+  this.votedPosts.splice(index, 1);
+};
+
+Teacher.methods.upvote = function(lesson, cb) {
+  this.votedPosts.push(lesson);
 };
 
 Teacher.methods.removeLesson = function(lesson, cb) {
@@ -102,7 +110,6 @@ Teacher.methods.removeFollower = function(otherTeacher, cb) {
 
 // Gets the participants of a follow or unfollow request
 Teacher.statics.FollowTeacher = function (sourceUserId, destUserId, cb) {
-  console.log(sourceUserId);
   var thisSceme = this;
   thisSceme.findOne({ _id: sourceUserId }, function(err, sourceUser) {
     if (err)
@@ -138,12 +145,10 @@ Teacher.statics.FollowTeacher = function (sourceUserId, destUserId, cb) {
 
 // Gets the participants of a follow or unfollow request
 Teacher.statics.UnfollowTeacher = function (sourceUserId, destUserId, cb) {
-  console.log(sourceUserId);
   var thisSceme = this;
   thisSceme.findOne({ _id: sourceUserId }, function(err, sourceUser) {
     if (err)
     {
-      console.log('1' + err)
       cb(err);
     }
     else
@@ -151,7 +156,6 @@ Teacher.statics.UnfollowTeacher = function (sourceUserId, destUserId, cb) {
        thisSceme.findOne({ _id: destUserId }, function(err, destUser) {
          if (err)
          {
-           console.log('2' + err)
            cb(err);
          }
          else
@@ -159,12 +163,10 @@ Teacher.statics.UnfollowTeacher = function (sourceUserId, destUserId, cb) {
              sourceUser.unfollow(destUser, function (err) {
                 if (err)
                 {
-                  console.log('3' + err)
                   cb(err);
                 }
                 else
                 {
-                  console.log('4' + err)
                     console.log()
                     destUser.removeFollower(sourceUser, cb);
                 }; 
@@ -183,7 +185,6 @@ Teacher.statics.removeLessonFromTeacherID = function(teacherID, lesson, cb) {
   this.findById(teacherID, 'lessonPlans', function(err, teacher) {
     if (err)
     {
-      console.log('no such');
       cb(err)
     }
     else

@@ -61,6 +61,15 @@ passport.deserializeUser(Teacher.deserializeUser());
 
 // mongoose
 mongoose.connect('mongodb://localhost/TeachRDatabase');
+var db = mongoose.connection;
+
+db.on('error', function callback () {
+  console.log("Connection error");
+});
+
+db.once('open', function callback () {
+  console.log("Mongo working!");
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

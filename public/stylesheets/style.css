@@ -300,6 +300,7 @@ form {
   border-bottom-color: #FF7F50 !important;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
+  margin-bottom: 10px;
 }
 
 .date .month {
@@ -322,4 +323,21 @@ form {
   font-size: 11px;
   margin-top: -9px;
   text-align: center;
+}
+
+.voteContainer {
+  width: 70px; 
+}
+.vote {
+  height: 50px;
+  border-bottom: 1px solid;
+  border-bottom-color: #FF7F50 !important;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  font-size: 30px;
+  text-align: center;
+}
+
+.vote:a:hover {
+  text-decoration: none !important;
 }

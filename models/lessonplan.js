@@ -19,7 +19,8 @@ var LessonPlan = new Schema({
 	lesson_plan_expectations: String,
 	number_of_votes: Number,
 	average_rating: Number,
-    date: Date
+    date: Date,
+    history_lp_text: [{ text: String, expectations: String, date: Date}]
 });
 
 LessonPlan.methods.addChild = function(childReference, cb) {
