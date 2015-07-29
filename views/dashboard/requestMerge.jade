@@ -8,7 +8,10 @@ block dashcontent
     h2.page-header Request for Merge
     .row.merging
         .col-md-12.text-right
-            != '<del>Theirs</del> <ins>Yours</ins>'
+            if (view)
+                != 'Common <ins>'
+                span #{teacher.name}
+                != '\'s</ins> <del>Yours</del>'
             p
     .row.merging
         .col-md-12
@@ -29,10 +32,16 @@ block dashcontent
                     dd(ng-bind-html="mergedLesson.text")
     .row
         .col-md-12.text-right
-            a.btn.btn-primary(type='button' href='editEntry?id=' + requestForMerge.otherLesson.id) Edit
-            span 
-            | 
-            a.btn.btn-primary(type='button' href='sendMergeRequest?id=' + requestForMerge.otherLesson.id) Send Request
+            if (view)
+                a.btn.btn-primary(type='button' href='acceptMerge?id=' + requestForMerge.otherLesson.id) Accept
+                span 
+                | 
+                a.btn.btn-primary(type='button' href='rejectMerge?id=' + requestForMerge.otherLesson.id) Reject
+            else
+                a.btn.btn-primary(type='button' href='editEntry?id=' + requestForMerge.otherLesson.id) Edit
+                span 
+                | 
+                a.btn.btn-primary(type='button' href='sendMergeRequest?id=' + requestForMerge.otherLesson.id) Send Request to #{teacher.name}
     script.
         var data = !{JSON.stringify(requestForMerge)}
         var myApp =  angular.module('MergeLessonPlans', ['ngRoute']); 

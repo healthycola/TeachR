@@ -282,7 +282,7 @@ body {
   background-color: #CEF6CE;
   text-decoration: none;
   font-style: italic;
-  padding: 5px;
+  padding: 5px 0px;
   border-top: 1px solid #38BD38;
   border-bottom: 1px solid #38BD38;
   line-height:33px;
@@ -293,7 +293,7 @@ body {
   background-color: #F6CED8;
   text-decoration: none;
   font-style: italic;
-  padding: 5px;
+  padding: 5px 0px;
   border-top: 1px solid #750B25;
   border-bottom: 1px solid #750B25;
 }

@@ -1,4 +1,11 @@
 extends ../layout
 
 block content
-    h2 Some shit about request merges here.
+    h2 Pending merge requests
+    ol
+        - each request in mergeRequestsObjects
+            li
+                a(href='viewMerge?id=' + request.otherLesson.id) #{request.myLesson.title}
+                span
+                    i  by
+                        a(href='userinfo?id=' + request.mergeTeacher.id)  #{request.mergeTeacher.name} 

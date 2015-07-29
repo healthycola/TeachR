@@ -656,6 +656,7 @@ router.get('/viewLesson', function (req, res) {
                 lessonPlanViewObject.expectations = requestedLessonPlan.lesson_plan_expectations;
                 lessonPlanViewObject.votes = requestedLessonPlan.number_of_votes;
                 lessonPlanViewObject.parents = requestedLessonPlan.parents;
+                lessonPlanViewObject.history = requestedLessonPlan.history_lp;
                 res.render('dashboard/viewLesson', { lessonPlan: lessonPlanViewObject });
             }
 
@@ -1037,25 +1038,32 @@ router.get('/requestMerge', function (req, res) {
         ErrorFunction(req, res, 'No lesson Specified', '/dashboard', null);
         return;
     }
-    
+
     var requestForMergeObject = {};
-    LessonPlan.findById(req.param('id'), function(err, lesson) {
+    LessonPlan.findById(req.param('id'), function (err, lesson) {
         if (err) {
             ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
             return;
         }
         var lastParent = lesson.parents[lesson.parents.length - 1];
-        
-        LessonPlan.findById(lastParent, function(err, parentLesson) {
-              if (err) {
-                  ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
-                  return;
-              }
-              
-              requestForMergeObject.myLesson = parentLesson;
-              requestForMergeObject.otherLesson = lesson;
-              
-              res.render('dashboard/requestMerge', { requestForMerge: requestForMergeObject });
+
+        LessonPlan.findById(lastParent, function (err, parentLesson) {
+            if (err) {
+                ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
+                return;
+            }
+
+            Teacher.findById(parentLesson.author, function (err, parentTeacher) {
+                if (err) {
+                    ErrorFunction(req, res, 'Could not find parent teacher', '/dashboard', null);
+                    return;
+                }
+
+                requestForMergeObject.myLesson = parentLesson;
+                requestForMergeObject.otherLesson = lesson;
+
+                res.render('dashboard/requestMerge', { requestForMerge: requestForMergeObject, teacher: parentTeacher });
+            })
         })
     })
 })
@@ -1112,7 +1120,227 @@ router.get('/sendMergeRequest', function (req, res) {
 })
 
 router.get('/viewMergeRequests', function (req, res) {
-    res.render('user/viewMergeRequests');
+    if (!req.user) {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+        return;
+    }
+    
+    var onErrorfn = function (error) {
+        res.send({ err: 'Removing this lesson failed' + error });
+    }
+    
+    var mergeRequests = [];
+    var waitFor = function (callback, parameters, done, onError) {
+        var counter = parameters.length;
+        var error = null;
+        var next = function (err) {
+            if (err) {
+                // There is an error in the wait functions, abort.
+                //This needs to be an abort function. (i.e. no next, and must render/redirect)
+                error = err;
+                onError(err);
+            }
+
+            if (--counter == 0 && !error) {
+                done();
+            }
+        };
+
+        for (var i = 0; i < parameters.length; i++) {
+            callback(parameters[i], next);
+        }
+    }
+    
+    var findRequests = function(request, next) {
+        LessonPlan.findById(request.myLesson, function(err, originalLesson) {
+            if (err || !originalLesson) {
+                next('Cannot find original lesson' + err);
+                return;
+            }
+            
+            LessonPlan.findById(request.otherLesson, function(err, mergeRequestLesson) {
+                if (err || !mergeRequestLesson) {
+                    next('Cannot find other lesson' + err);
+                    return;
+                }
+                
+                Teacher.findById(mergeRequestLesson.author, function(err, otherTeacher) {
+                    if (err || !otherTeacher) {
+                        next('Cannot find other teacher' + err);
+                        return;
+                    }
+                    
+                    var mergeRequestObject = { myLesson: originalLesson, otherLesson: mergeRequestLesson, mergeTeacher: otherTeacher};
+                    mergeRequests.push(mergeRequestObject);
+                    next();
+                })
+            })
+        })
+    }
+    
+    var renderPage = function () {
+        res.render('user/viewMergeRequests', { mergeRequestsObjects: mergeRequests });
+    }
+    
+    waitFor(findRequests, req.user.requestForMerge, renderPage, onErrorfn);
+})
+
+router.get('/viewMerge', function (req, res) {
+    if (!req.user) {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+        return;
+    }
+
+    if (!req.param('id') || req.param('id') == '') {
+        ErrorFunction(req, res, 'No lesson Specified', '/dashboard', null);
+        return;
+    }
+
+    var requestForMergeObject = {};
+    LessonPlan.findById(req.param('id'), function (err, lesson) {
+        if (err) {
+            ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
+            return;
+        }
+        var lastParent = lesson.parents[lesson.parents.length - 1];
+
+        LessonPlan.findById(lastParent, function (err, parentLesson) {
+            if (err) {
+                ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
+                return;
+            }
+
+            Teacher.findById(lesson.author, function (err, parentTeacher) {
+                if (err) {
+                    ErrorFunction(req, res, 'Could not find parent teacher', '/dashboard', null);
+                    return;
+                }
+
+                requestForMergeObject.myLesson = parentLesson;
+                requestForMergeObject.otherLesson = lesson;
+
+                res.render('dashboard/requestMerge', { requestForMerge: requestForMergeObject, teacher: parentTeacher, view: true });
+            })
+        })
+    })
+})
+
+router.get('/acceptMerge', function (req, res) {
+    if (!req.user) {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+        return;
+    }
+
+    if (!req.param('id') || req.param('id') == '') {
+        ErrorFunction(req, res, 'No lesson Specified', '/dashboard', null);
+        return;
+    }
+
+    LessonPlan.findById(req.param('id'), function (err, lesson) {
+        if (err) {
+            ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
+            return;
+        }
+        var lastParent = lesson.parents[lesson.parents.length - 1];
+
+        LessonPlan.findById(lastParent, function (err, parentLesson) {
+            if (err) {
+                ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
+                return;
+            }
+            
+            var historyEntry = {}
+            historyEntry.text = parentLesson.lesson_plan_text;
+            historyEntry.expectations = parentLesson.lesson_plan_expectations;
+            historyEntry.date = parentLesson.date;
+            historyEntry.mergeInititator = lesson;
+            
+            parentLesson.history_lp.push(historyEntry);
+            
+            parentLesson.title = lesson.title;
+            parentLesson.duration_in_days = lesson.duration_in_days;
+            parentLesson.lesson_plan_text = lesson.lesson_plan_text;
+            parentLesson.lesson_plan_expectations = lesson.lesson_plan_expectations;
+            parentLesson.date = new Date();
+            
+            //TODO: Inform initiator that they have been accepted;
+            
+            var indexToRemove = -1;
+            for (var i = 0; i < req.user.requestForMerge.length; ++i) {
+                if (req.user.requestForMerge[i].myLesson == parentLesson.id)
+                {
+                    indexToRemove = i;
+                    break;
+                }
+            }
+            
+            if (indexToRemove == -1) {
+                ErrorFunction(req, res, 'Could not find request', '/dashboard', null);
+                return;
+            }
+            else
+            {
+                req.user.requestForMerge.splice(indexToRemove, 1);
+                
+                req.user.save(function(err) {
+                    if (err) {
+                        ErrorFunction(req, res, 'Cannot save user', '/dashboard', null);
+                        return;
+                    }
+                    
+                    parentLesson.save(function(err) {
+                        if (err) {
+                            ErrorFunction(req, res, 'Cannot save lesson', '/dashboard', null);
+                            return;
+                        }
+                        
+                        req.flash('info', 'Success!');
+                        res.redirect('/viewLesson?id=' + parentLesson.id);
+                    })
+                })   
+            }
+        })
+    })
+})
+
+router.get('/rejectMerge', function (req, res) {
+    if (!req.user) {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+        return;
+    }
+
+    if (!req.param('id') || req.param('id') == '') {
+        ErrorFunction(req, res, 'No lesson Specified', '/dashboard', null);
+        return;
+    }
+
+    var indexToRemove = -1;
+    for (var i = 0; i < req.user.requestForMerge.length; ++i) {
+        if (req.user.requestForMerge[i].otherLesson == req.param('id'))
+        {
+            indexToRemove = i;
+            break;
+        }
+    }
+    
+    if (indexToRemove == -1) {
+        ErrorFunction(req, res, 'Could not find request', '/dashboard', null);
+        return;
+    }
+    else
+    {
+        req.user.requestForMerge.splice(indexToRemove, 1);
+        
+        req.user.save(function(err) {
+            if (err) {
+                ErrorFunction(req, res, 'Cannot save user', '/dashboard', null);
+                return;
+            }
+            
+            req.flash('info', 'Rejected!');
+            res.redirect('userinfo?id=' + req.user._id.toHexString());
+        })   
+    }
 })
 
 module.exports = router;

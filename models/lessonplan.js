@@ -20,7 +20,7 @@ var LessonPlan = new Schema({
 	number_of_votes: Number,
 	average_rating: Number,
     date: Date,
-    history_lp_text: [{ text: String, expectations: String, date: Date}]
+    history_lp: [{ text: String, expectations: String, date: Date, mergeInitiator: { type: Schema.Types.ObjectId, ref: 'LessonPlan' }}]
 });
 
 LessonPlan.methods.addChild = function(childReference, cb) {
