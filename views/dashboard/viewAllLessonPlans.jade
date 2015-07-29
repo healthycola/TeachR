@@ -11,7 +11,7 @@ block dashcontent
                 - each lesson in requestedLessonPlans
                     dl.dl-horizontal
                         .row
-                            .col-md-1
+                            .col-md-2.span12
                                 - if (lesson.date)
                                     - var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec" ];
                                     - var month = monthNames[lesson.date.getUTCMonth()];
@@ -22,17 +22,18 @@ block dashcontent
                                         .day #{day}
                                         .year #{year}
                                 .voteContainer
-                                    .row
-                                        .col-md-12
-                                            .vote(ng-bind="votes[\'" + lesson.id + "\']")
-                                    .row
-                                        .col-md-12.text-center
-                                            a(ng-click=('upvote(\'' + lesson.id + '\')'))
-                                                i.fa.fa-thumbs-up 
-                                            span |
-                                            a(ng-click=('downvote(\'' + lesson.id + '\')')) 
-                                                i.fa.fa-thumbs-down 
-                            .col-md-11
+                                        .row
+                                            .col-md-12
+                                                .vote(ng-bind="votes[\'" + lesson.id + "\']")
+                                        .voting
+                                            .row
+                                                .col-md-6
+                                                    a.votebtn(ng-click=('upvote(\'' + lesson.id + '\')'))
+                                                        i.fa.fa-thumbs-up                                               
+                                                .col-md-6
+                                                    a.votebtn(ng-click=('downvote(\'' + lesson.id + '\')'))
+                                                        i.fa.fa-thumbs-down
+                            .col-md-10
                                 dt Title
                                 dd 
                                     a(href='viewLesson?id=' + lesson._id)
@@ -74,10 +75,6 @@ block dashcontent
                                     else
                                         a.btn.btn-primary(type='button'
                                             href='forkEntry?id=' + lesson.id) Fork
-                                        span 
-                                        | 
-                                        a.btn.btn-primary(type='button' 
-                                            ng-click=('upvote(\'' + lesson.id + '\')')) Upvote
     else
         span No lessons to show!
     // Modal
@@ -120,29 +117,4 @@ block dashcontent
         
     script.
         var data = !{JSON.stringify(requestedLessonPlans)}
-        var myApp =  angular.module('ViewAllLessonPlans', ['ngRoute']); 
-        myApp.controller('myAppController',['$scope', '$http', function ($scope, $http, myAppService) {
-            $scope.lessons = data;
-            $scope.votes = {}
-            for (var i = 0; i < data.length; ++i) {
-                $scope.votes[data[i]._id] = data[i].number_of_votes; 
-            }
-            
-            $scope.upvote = function(lessonID) {
-                $http.get('/upvote?id='+lessonID).then(function(result) { 
-                    if (result.data.upvote)
-                    {
-                        $scope.votes[lessonID]++;
-                    } 
-                });
-            };
-            
-            $scope.downvote = function(lessonID) {
-                $http.get('/downvote?id='+lessonID).then(function(result) { 
-                    if (result.data.downvote)
-                    {
-                        $scope.votes[lessonID]--;
-                    } 
-                });
-            };
-        }]);
+    script(src='/javascripts/votingAddon.js')

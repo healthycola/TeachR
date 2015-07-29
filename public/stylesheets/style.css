@@ -329,15 +329,29 @@ form {
   width: 70px; 
 }
 .vote {
-  height: 50px;
+  height: 30px;
   border-bottom: 1px solid;
   border-bottom-color: #FF7F50 !important;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
-  font-size: 30px;
+  font-size: 15px;
   text-align: center;
 }
 
 .vote:a:hover {
   text-decoration: none !important;
 }
+
+.votebtn {
+  display:block;
+  width: 15px;
+}
+
+.voting {
+    display: block;
+    height: 35px;
+    width: 90%;
+    padding-top: 5px;
+}
+
+.span12 {text-align: center}
