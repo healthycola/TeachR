@@ -934,19 +934,19 @@ router.get('/downvote', function (req, res) {
         ErrorFunction(req, res, "You are not logged in.", '/');
         return;
     }
-    
+
     if (!req.param('id') || req.param('id') == '') {
         ErrorFunction(req, res, 'No lesson Specified', '/dashboard', null);
         return;
     }
-    
+
     var currentTeacher;
     var downvotelesson;
-    
+
     var onErrorfn = function (error) {
-        res.send({err: 'Removing this lesson failed' + error });
+        res.send({ err: 'Removing this lesson failed' + error });
     }
-    
+
     var findTeacher = function (next) {
         Teacher.findById(req.user.id, function (err, teacher) {
             if (err) {
@@ -958,7 +958,7 @@ router.get('/downvote', function (req, res) {
             }
         })
     }
-    
+
     var findLessonPlan = function (next) {
         LessonPlan.findById(req.param('id'), function (err, lesson) {
             if (err) {
@@ -970,11 +970,11 @@ router.get('/downvote', function (req, res) {
             }
         })
     }
-    
+
     var downvote = function () {
-        var updateTeacherList = function(next) {
+        var updateTeacherList = function (next) {
             currentTeacher.downvote(downvotelesson);
-            currentTeacher.save(function(err) {
+            currentTeacher.save(function (err) {
                 if (err) {
                     next('Could not save the lesson voted on' + err);
                 }
@@ -983,10 +983,10 @@ router.get('/downvote', function (req, res) {
                 }
             })
         }
-        
+
         var updateLessonVote = function (next) {
             downvotelesson.number_of_votes--;
-            downvotelesson.save(function(err) {
+            downvotelesson.save(function (err) {
                 if (err) {
                     next('Could not update vote' + err);
                 }
@@ -995,17 +995,16 @@ router.get('/downvote', function (req, res) {
                 }
             })
         }
-        
+
         var sendResponse = function () {
-            res.send({err: null, downvote: true});
+            res.send({ err: null, downvote: true });
         }
-        
-        if (downvotelesson.author == currentTeacher.id)
-        {
-            res.send({err: "You can't downvote your own lesson!", downvote: false});
+
+        if (downvotelesson.author == currentTeacher.id) {
+            res.send({ err: "You can't downvote your own lesson!", downvote: false });
             return;
         }
-        
+
         var hasTeacherVoted = false;
         for (var i = 0; i < currentTeacher.votedPosts.length; ++i) {
             if (currentTeacher.votedPosts[i] == downvotelesson.id) {
@@ -1014,18 +1013,49 @@ router.get('/downvote', function (req, res) {
                 break;
             }
         }
-        
-        if (!hasTeacherVoted)
-        {
-            res.send({err: null, downvote: false});
+
+        if (!hasTeacherVoted) {
+            res.send({ err: null, downvote: false });
         }
-        else
-        {
+        else {
             wait([updateTeacherList, updateLessonVote], sendResponse, onErrorfn);
         }
     }
-    
+
     wait([findTeacher, findLessonPlan], downvote, onErrorfn);
+})
+
+router.get('/requestMerge', function (req, res) {
+    if (!req.user) {
+        ErrorFunction(req, res, "You are not logged in.", '/');
+        return;
+    }
+
+    if (!req.param('id') || req.param('id') == '') {
+        ErrorFunction(req, res, 'No lesson Specified', '/dashboard', null);
+        return;
+    }
+    
+    var requestForMergeObject = {};
+    LessonPlan.findById(req.param('id'), function(err, lesson) {
+        if (err) {
+            ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
+            return;
+        }
+        var lastParent = lesson.parents[lesson.parents.length - 1];
+        
+        LessonPlan.findById(lastParent, function(err, parentLesson) {
+              if (err) {
+                  ErrorFunction(req, res, 'Could not find lesson', '/dashboard', null);
+                  return;
+              }
+              
+              requestForMergeObject.myLesson = parentLesson;
+              requestForMergeObject.otherLesson = lesson;
+              
+              res.render('dashboard/requestMerge', { requestForMerge: requestForMergeObject });
+        })
+    })
 })
 
 module.exports = router;

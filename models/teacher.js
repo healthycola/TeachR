@@ -13,7 +13,8 @@ var Teacher = new Schema({
     following: [{ type: Schema.Types.ObjectId, ref: 'Teacher' }],
     followers: [{ type: Schema.Types.ObjectId, ref: 'Teacher' }],
     joiningDate: Date,
-    votedPosts: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }]
+    votedPosts: [{ type: Schema.Types.ObjectId, ref: 'LessonPlan' }],
+    requestForMerge: [{ myLesson : { type: Schema.Types.ObjectId, ref: 'LessonPlan' }, otherLesson : { type: Schema.Types.ObjectId, ref: 'LessonPlan' }}]
 });
 
 Teacher.methods.addlessonPlan = function(lessonPlan, cb) {

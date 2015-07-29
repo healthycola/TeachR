@@ -71,7 +71,11 @@ block dashcontent
                                         | 
                                         a.btn.btn-primary(type='button', data-toggle='modal'
                                             href='#exampleModal'
-                                            data-whatever=lesson.id) delete
+                                            data-whatever=lesson.id) Delete
+                                        span 
+                                        | 
+                                        if (lesson.parents.length > 0)
+                                            a.btn.btn-primary(type='button' href='requestMerge?id=' + lesson.id) Request Merge
                                     else
                                         a.btn.btn-primary(type='button'
                                             href='forkEntry?id=' + lesson.id) Fork
