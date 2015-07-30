@@ -25,7 +25,8 @@ block dashcontent
                         dt Linked Lesson
                         dd #{lessonPlan.linkedLessonTitle}
                     dt Author 
-                    dd #{lessonPlan.author}
+                    dd
+                        a(href='userinfo?id=' + lessonPlan.teacherID) #{lessonPlan.author}
                     dt Expectations 
                     dd #{lessonPlan.expectations}
                     dt LessonPlan 

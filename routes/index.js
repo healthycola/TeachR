@@ -280,16 +280,7 @@ router.get('/dashboard', function (req, res) {
             ErrorFunction(req, res, 'Unable to find teacher. Admin is looking into it!', '/', null);
         }
         else {
-            LessonPlan.find(
-                {
-                    author: { $in: teacher.following }
-                })
-                .sort(
-                    {
-                        datefield: 1
-                    })
-                .limit(5)
-                .exec(function (err, lessonPlans) {
+            LessonPlan.find(function (err, lessonPlans) {
                     if (err) {
                         ErrorFunction(req, res, 'Unable to find lesson plans', '/', err);
                     }
