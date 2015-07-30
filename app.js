@@ -60,7 +60,7 @@ passport.serializeUser(Teacher.serializeUser());
 passport.deserializeUser(Teacher.deserializeUser());
 
 // mongoose
-mongoose.connect('mongodb://localhost/TeachRDatabase');
+mongoose.connect('mongodb://aamir:superhp@ds061631.mongolab.com:61631/teachr');
 var db = mongoose.connection;
 
 db.on('error', function callback () {

@@ -83,7 +83,7 @@ function ErrorFunction(req, res, flashMessage, redirectPath, err) {
         console.log(err);
     }
 
-    req.flash('info', flashMessage);
+    req.flash('info', {message: flashMessage});
     res.redirect(redirectPath);
 } 
 

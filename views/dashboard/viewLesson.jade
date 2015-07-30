@@ -36,10 +36,14 @@ block dashcontent
             if (user.id == lessonPlan.teacherID)
                 a.btn.btn-primary(type='button'
                     href='editEntry?id=' + lessonPlan.lessonID) Edit
-                span 
-                | 
                 if (lessonPlan.parents && lessonPlan.parents.length > 0)
+                    span 
+                    | 
                     a.btn.btn-primary(type='button' href='requestMerge?id=' + lessonPlan.lessonID) Request Merge
             else
                 a.btn.btn-primary(type='button'
                     href='forkEntry?id=' + lessonPlan.lessonID) Fork
+            if (lessonPlan.history && lessonPlan.history.length > 0)
+                    span 
+                    | 
+                    a.btn.btn-primary(type='button' href='viewHistory?id=' + lessonPlan.lessonID) History
